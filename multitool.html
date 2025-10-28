@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reggie's MultiTool</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans min-h-screen flex flex-col items-center py-10">
+  <h1 class="text-4xl font-bold text-indigo-400 mb-10 text-center">Reggie's MultiTool</h1>
+
+  <div class="grid md:grid-cols-2 gap-8 w-full max-w-5xl px-4">
+
+    <!-- Ping Tool -->
+    <div class="bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-800">
+      <h2 class="text-xl font-semibold mb-4 text-indigo-300">Ping a Host</h2>
+      <input id="pingTarget" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100" placeholder="Enter domain or IP" />
+      <button onclick="runTool('ping')" class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg font-semibold transition">Run Ping</button>
+      <pre id="pingOutput" class="output-box"></pre>
+    </div>
+
+    <!-- Proxy Checker -->
+    <div class="bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-800">
+      <h2 class="text-xl font-semibold mb-4 text-indigo-300">Proxy Checker</h2>
+      <input id="geoTarget" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100" placeholder="Enter IP address" />
+      <button onclick="runTool('geoip')" class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg font-semibold transition">Check</button>
+      <pre id="geoOutput" class="output-box"></pre>
+    </div>
+
+    <!-- Nmap Tool -->
+    <div class="bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-800">
+      <h2 class="text-xl font-semibold mb-4 text-indigo-300">Nmap Scan</h2>
+      <input id="nmapTarget" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100" placeholder="Enter target" />
+      <button onclick="runTool('nmap')" class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg font-semibold transition">Run Scan</button>
+      <pre id="nmapOutput" class="output-box"></pre>
+    </div>
+
+    <!-- Username Lookup -->
+    <div class="bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-800">
+      <h2 class="text-xl font-semibold mb-4 text-indigo-300">Username Lookup</h2>
+      <input id="userTarget" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100" placeholder="Enter username" />
+      <button onclick="runTool('user')" class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg font-semibold transition">Search</button>
+      <pre id="userOutput" class="output-box"></pre>
+    </div>
+
+    <!-- Trace Route Tool -->
+    <div class="bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-800">
+      <h2 class="text-xl font-semibold mb-4 text-indigo-300">Trace Route</h2>
+      <input id="traceTarget" class="w-full p-2 rounded bg-gray-800 border border-gray-700 text-gray-100" placeholder="Enter IP or domain" />
+      <button onclick="runTool('traceroute')" class="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg font-semibold transition">Run Trace Route</button>
+      <pre id="traceOutput" class="output-box"></pre>
+    </div>
+
+  </div>
+
+  <footer class="mt-12 text-gray-500 text-sm text-center">
+    Built by Reggie | Discord Server: ZK9wV33rrJ
+  </footer>
+
+  <script>
+    async function runTool(tool) {
+      let target = "";
+      let url = "";
+      let output;
+
+      switch (tool) {
+        case "ping":
+          target = document.getElementById("pingTarget").value.trim();
+          url = `/Ping+${encodeURIComponent(target)}`;
+          output = document.getElementById("pingOutput");
+          break;
+        case "geoip":
+          target = document.getElementById("geoTarget").value.trim();
+          url = `/Conn_type+${encodeURIComponent(target)}`;
+          output = document.getElementById("geoOutput");
+          break;
+        case "nmap":
+          target = document.getElementById("nmapTarget").value.trim();
+          url = `/nmap+${encodeURIComponent(target)}`;
+          output = document.getElementById("nmapOutput");
+          break;
+        case "user":
+          target = document.getElementById("userTarget").value.trim();
+          url = `/usernameLookUp+${encodeURIComponent(target)}`;
+          output = document.getElementById("userOutput");
+          break;
+        case "traceroute":
+          target = document.getElementById("traceTarget").value.trim();
+          url = `/Traceroute+${encodeURIComponent(target)}`;
+          output = document.getElementById("traceOutput");
+          break;
+      }
+
+      if (!target) {
+        output.textContent = "Please enter a valid input.";
+        return;
+      }
+
+      output.textContent = "Working...";
+
+      try {
+        const res = await fetch(url, { method: "POST" });
+        const data = await res.json();
+
+        // Normalize all possible keys to one
+        const result = data.Results || data.results || data.text || "";
+
+        if (!result) {
+          output.textContent = "No results returned.";
+          return;
+        }
+
+        // Username lookup has structured data
+        if (tool === "user" && Array.isArray(result)) {
+          let formatted = result.map(entry => `${entry.Gamertag} ➜ ${entry.IP}`).join("\n");
+          output.textContent = formatted || "No matches found.";
+        }
+        // General array results
+        else if (Array.isArray(result)) {
+          output.textContent = result.join("\n");
+        }
+        // Plain string
+        else {
+          output.textContent = result;
+        }
+      } catch (err) {
+        output.textContent = "Error: " + err.message;
+      }
+
+      output.scrollTop = output.scrollHeight;
+    }
+  </script>
+
+  <style>
+    .output-box {
+      background-color: #1f2937;
+      border: 1px solid #374151;
+      color: #d1d5db;
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      overflow-x: auto;
+      min-height: 130px;
+      white-space: pre-wrap;
+    }
+  </style>
+</body>
+</html>

@@ -1,0 +1,673 @@
+=== HTTP REQUEST (from 10.0.0.8:55952 -> 192.81.241.100:80) ===
+POST /gta5/11/gameservices/socialclub.asmx/GetPasswordRequirements HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: ocHJUZ1IZgM=
+ros-headershmac: si4Q7Le9s917jUIejz36GxYpxwg=
+content-type: application/x-www-form-urlencoded; charset=utf-8
+user-agent: ros vWwoNthRGRrJUU9C3FkERoAUSlnFA0ZTkRoVB4w=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod-core.ros.rockstargames.com
+content-length: 339
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+POST /gta5/11/gameservices/socialclub.asmx/GetPasswordRequirements HTTP/1.1
+Accept: */*
+ros-SecurityFlags: 239
+ros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-Challenge: ocHJUZ1IZgM=
+ros-HeadersHmac: si4Q7Le9s917jUIejz36GxYpxwg=
+Content-Type: application/x-www-form-url
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55953 -> 192.81.241.198:80) ===
+POST /gta5/11/gameservices/Clans.asmx/GetMine HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: rr/0NIQIYYE=
+ros-headershmac: 4ejWT4veXgdYJoQSUS1eZWivd9U=
+content-type: application/x-www-form-urlencoded; charset=utf-8
+user-agent: ros vWwoNthRGRrJUU9C3FkERoAUSlnFA0ZTkRoVB4w=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: crews-gta5-prod.ros.rockstargames.com
+content-length: 362
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+POST /gta5/11/gameservices/Clans.asmx/GetMine HTTP/1.1
+Accept: */*
+ros-SecurityFlags: 239
+ros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-Challenge: rr/0NIQIYYE=
+ros-HeadersHmac: 4ejWT4veXgdYJoQSUS1eZWivd9U=
+Content-Type: application/x-www-form-urlencoded; charset=utf-8
+User-Agent: ros vWwo
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55955 -> 192.81.241.172:80) ===
+POST /gta5/11/gameservices/matchmaking.asmx/UnadvertiseAll HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: o5A+LA3CXoU=
+ros-headershmac: brzREyRjrZC+sU7u+Emj6UH1fks=
+content-type: application/x-www-form-urlencoded; charset=utf-8
+user-agent: ros vWwoNthRGRrJUU9C3FkERoAUSlnFA0ZTkRoVB4w=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: mm-gta5-prod.ros.rockstargames.com
+content-length: 339
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+POST /gta5/11/gameservices/matchmaking.asmx/UnadvertiseAll HTTP/1.1
+Accept: */*
+ros-SecurityFlags: 239
+ros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-Challenge: o5A+LA3CXoU=
+ros-HeadersHmac: brzREyRjrZC+sU7u+Emj6UH1fks=
+Content-Type: application/x-www-form-urlencoded;
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55956 -> 192.81.241.197:80) ===
+POST /gta5/11/gameservices/Inbox.asmx/GetUnreadMessages HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: /Wc1Ls4zpi4=
+ros-headershmac: QxVjmlyudQLxNVryVP4yfPDB09w=
+content-type: application/x-www-form-urlencoded; charset=utf-8
+user-agent: ros vWwoNthRGRrJUU9C3FkERoAUSlnFA0ZTkRoVB4w=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: inbox-gta5-prod.ros.rockstargames.com
+content-length: 371
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+POST /gta5/11/gameservices/Inbox.asmx/GetUnreadMessages HTTP/1.1
+Accept: */*
+ros-SecurityFlags: 239
+ros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-Challenge: /Wc1Ls4zpi4=
+ros-HeadersHmac: QxVjmlyudQLxNVryVP4yfPDB09w=
+Content-Type: application/x-www-form-urlencoded; charset=utf-8
+User-Agent: ros vWw
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55954 -> 192.81.241.100:80) ===
+POST /gta5/11/gameservices/AgeAssurance.asmx/PlayerStatus HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: n0XPJx8ZxpI=
+ros-headershmac: kw9R9lQZgJDITcUsKIUHzHS1vwk=
+content-type: application/x-www-form-urlencoded; charset=utf-8
+user-agent: ros vWwoNthRGRrJUU9C3FkERoAUSlnFA0ZTkRoVB4w=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+content-length: 339
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+POST /gta5/11/gameservices/AgeAssurance.asmx/PlayerStatus HTTP/1.1
+Accept: */*
+ros-SecurityFlags: 239
+ros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-Challenge: n0XPJx8ZxpI=
+ros-HeadersHmac: kw9R9lQZgJDITcUsKIUHzHS1vwk=
+Content-Type: application/x-www-form-urlencoded;
+====================
+
+=== HTTP REQUEST (from 192.81.241.100:80 -> 10.0.0.8:55952) ===
+b
+====================
+
+=== HTTP REQUEST (from 192.81.241.100:80 -> 10.0.0.8:55954) ===
+HTTP/1.1 200 OK
+cache-control: private, max-age=0
+content-type: text/xml; charset=utf-8
+content-encoding: gzip
+vary: Accept-Encoding
+server: Microsoft-IIS/10.0
+scs-requestid: b25f7986-8544-4716-bce6-fd0fd2256e32
+ros-headershmac: OTtCnwkE8rDmyiPgxtWL252z0IA=
+date: Sun, 05 Oct 2025 23:01:13 GMT
+content-length: 607
+
+--- BODY (raw, {len(body)} bytes) ---
+b'\x1f\x8b\x08\x00\x00\x00\x00\x00\x04\x00\xed\xbd\x07`\x1cI\x96%&/m\xca{\x7fJ\xf5J\xd7\xe0t\xa1\x08\x80`\x13$\xd8\x90@\x10\xec\xc1\x88\xcd\xe6\x92\xec\x1diG#)\xab*\x81\xcaeVe]f\x16@\xcc\xed\x9d\xbc\xf7\xde{\xef\xbd\xf7\xde{\xef\xbd\xf7\xba;\x9dN\'\xf7\xdf\xff?\\fd\x01l\xf6\xceJ\xda\xc9\x9e!\x80\xaa\xc8\x1f?~|\x1f?"~\xf1\xe4\xf3/\xfe\x81\xbf\x7f\xfa\xcb\x7f\xc9\xfc\xd5\xef\xfc?\xfc\x8a/\x7f\xe3o\xef\xfe~\xff\xc2\x9f\xf6\xd7\xfd=\x7f\xd2\x1f\xfa\x7f\xb6\xff\xd5\xeao\xf9\x83\x7f\xc1\xe5\x9f\xf9\x07\xff;\x7f\xd9_\xf2{\x9f\xff-\xff\xca\x1f}\xf1\x17\xff\'\xbf\xe7\xe4w\xfb\x83\xff\xa3\xe7\xf3_\xebO\xf8\xef\x1f\xfe\xe1\x0f\xfe\x92_\xf37\xfe\x8d\xff\xda\xdf\xe9_?\xfa\xef\xff\xd5\xef7\xf7\xf3\xef|u\xfc\xeb\xff6\x9f|\xf6/\xff\xcf/\xff\xd9_\xfbg\xde}\xef\x8f\xfc\xfb\xfe\x97\xfd\x83\xe3\xf2/\xbe\xfcK\xb3_\xf7\xdf\xfa\x1d\x7f\x8f?\xed\xafX\xfc\xcb?\xf37\xff\xc7\xbf\xff\x7f\xfe\xeb\xff\x9b\xdf\xfa\xf7\x8a\'\x87\x7f\xcb\x7fy~\xfe\xcb\xff\x93\xff&\xf9C\x7f\xf9\xdf\xfek\xfe\x15\x7f\xccN\xfa\x87}\xff\x9f\xfd\xdf\xff\xbe\x9f\xf9o\xf2\x7f\xb8\xfa\xbb/~\xff?\xfd\x0f\xfa\x0f\xff\xc7\xad\xdf\xf6\xef\xfdc\xfe\xe4?\xe8\xa7>:\xfe\x0f\x7f\xa7\x7f\xf9\x1f\xfbk\xff\xd4\xdf\xe1\xc7\xff\xba\xff\xf6\xd7\xdd\x7f\xf9k\xfd\xe7\xbf\xf7\x8f\xff\xd7\xbf\xe1_\xb9\xf8\xdb\xfe\x9e\xdf\xe3?\xfb\xdeo\xf9W\x16\xbf\xe8\x1f\xfc;\xff\x96\xbf\xe8O\xfe}?\xfa5\x8f~\xbd\xdd_\xe7\x0f\xffs\x7f\xd5\x1f\xf4\xea\x1f\xfau\xff\xdb\xdf\xe7\x07\xbf\xcd_\xf6g\x9c\xff\xbb\x7f\xe3_\xfc\'6\xeb\xcb\'G?\xf1;\xfd\x03\x7f\xdf\xfc\xcf\xfe\x83\xfe\x8f\xf3_\xf0\xcf\xfcQ\xbf\xcd\x8b\xdf\xfe\xcf\xf9\x97\xfe\xa7\xdf\xfe\xe4\xb7\xb83\xf9\x9d\xfe\xce\xff\xe3\x7f\xcf\'\xff\xea\xd6O\xff\x07\x7f\xf0\x9d\xff\xf3\xaf\xfc/\xfe\xa1\x7f\xf6w\xfc\x1dN\xae\x7f\xf0\xab\xfe\xe0_\xfc\x0f\xfez?\xf3O\xfdo\xff\xf7\xef\xfc{\xfd\xd9\x7f\xe9\xbf\xf3\x0f_\xbc\xfds\x7f\xd7\xaf\xfe\xcc\xdf\xa0\xfd[\xfe\xd9\xff\xf8\x9f\xfb\xdb\xff\xe9\xbf\xae\xf9\x95\xe5\x1f\xf8\xf7\xfe{\xf9o\xffk\xfc\xf8\xb3\xff\xec\xbf\xfd\xde\x7fu\xf5\x0f\xff&\x8b\x9d\xff\x07\xe9\xa6&QA\x01\x00\x00'
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55952 -> 192.81.241.100:80) ===
+encoded; charset=utf-8
+user-agent: ros vWwoNthRGRrJUU9C3FkERoAUSlnFA0ZTkRoVB4w=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod-core.ros.rockstargames.com
+content-length: 339
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+b'POST /gta5/11/gameservices/GeoLocation.asmx/GetLocationInfoFromIP HTTP/1.1\r\nAccept: */*\r\nros-SecurityFlags: 239\r\nros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=\r\nros-Challenge: sXeIbriax/4=\r\nros-HeadersHmac: 8yta6osB1qgEa4mzZpimOWekCAw=\r\nContent-Type: application/x-www-form-urle'
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55952 -> 192.81.241.100:80) ===
+ncoded; charset=utf-8
+user-agent: ros fqUu8BuYH9wKmEmEH5ACgEPdTJ8GykCVUtMTwU8=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod-core.ros.rockstargames.com
+content-length: 360
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+b"\xa5.\xf0\xab\x1f\xd6\xf3\xf7\x99j>li'\xc4\x91\xa1\x80q6=E\x9a\x85\xfem:\xb99\xa0\xa1Z-\xdb@\xd0\xdbG1\xf7\x01/]\x9cR\x1b\xef\xcb.\x92\x19\x11\xf0\x1e\xac\xb8|f\xc0\x03\x94\x1d\x17\xe2w\x12\xba<\xac\x97\x8c\x85\x92\xc5\xe5\x8d\x9c\xa6Q\x9c\x8a\xd2\xd8\xcb2u\xe9R\x92\xcd\xdc\xa6\\\xa4(\x08\x9c\x80A\xb6\xba\xb0\x9d\xb5\x8a4\r\x98E\xd0\x94\xf9\xc4\xfb\xdf\x8c\x02${\x152tW\xdb\xdd\xec\xab\xce\x8f\xb1\x04Xo\xcb\xaaP\xd3$`-3\x959@QL\xa7\xbe-\xd8>E2\xa5\xf2+\xf3\xd6\x19\x86 \xf2\xbe\x99\x8a\xcc\xac\xdf'{\xa9&\xb8\xc1q~@\x84\xe4\xbaoYA\xf7\xf3w\x0c\x14\xc4c\xbc{\x1e\xe1\x12;\xd9\xe9|\x0f\xc3\xfd*|\x10Mu\xd6\xcc\xe4,\xd7\xc1%f\xac^\x04<k\xa5\xd0\x17\xd4\xd7\x08\xa4%,\xb0\xe0=8\xe6\xe3+:\x82\\\x02\x04|mr\xf5\x9d&~\x84\n\x05)M\xaeY\xb1Jo\xffU\xe7\xb9\xae\x8e\xe2\xc2\xe2hY\x02.\xc9\xe81k\xdf\xc4'hP\x9b\x9b\x01\xa9\xd0.e\x14\xc7\x1c\xa0\x9b\x07\xd0\x89C#\xfa\x03qj\x84\xe8z}\xbeut0\x05E_\x1c\x1f\xd6g\xa8Ri\x13a\x88\xc3R\x99\xa7iR\xd9\xaf\xa9\xe8\x8b>\xe0\x140\xebL\xd7D\x04\x8b]\x1e\x04#\xb8\xc7\xe7\x14\x96\x02\xaf\xd1b\x17\xfa\x06\xa5"
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55954 -> 192.81.241.100:80) ===
+charset=utf-8
+user-agent: ros vWwoNthRGRrJUU9C3FkERoAUSlnFA0ZTkRoVB4w=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+content-length: 339
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+b'GET /cloud/11/cloudservices/titles/gta5/xboxone/store/en/commerceData.xml HTTP/1.1\r\nAccept: */*\r\nros-SecurityFlags: 239\r\nros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=\r\nros-Challenge: FxxfwAGOtzU=\r\nros-HeadersHmac: iFm0irioa2cO/n+qOSuKMpt6STk=\r\nScs-Ticket: AwAQiT0AI2X97ZG0ewHWf'
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55954 -> 192.81.241.100:80) ===
+9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 01 Jan 1970 00:00:00 GMT
+user-agent: ros hOtYIeHWaQ3w1j9V5d50UbmTOk78hDZEqJ1lELU=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 192.81.241.100:80 -> 10.0.0.8:55954) ===
+HTTP/1.1 391
+cache-control: no-cache, no-store
+pragma: no-cache
+expires: -1
+location: http://prod.cloud.rockstargames.com/titles/gta5/xboxone/store/en/commerceData.xml
+scs-requestid: fb86776c-cc08-4f07-8670-009bc7eb5177
+ros-headershmac: /bKHhwMxb/7yBiRyktzO05AxY2g=
+date: Sun, 05 Oct 2025 23:01:13 GMT
+content-length: 0
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55958 -> 192.81.241.174:80) ===
+POST /gta5/11/gameservices/presence.asmx/GetPresenceServers HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: dNjft5WdGh8=
+ros-headershmac: yPuAzgLWvvsrnP09WUwAkNCuvuk=
+content-type: application/x-www-form-urlencoded; charset=utf-8
+user-agent: ros fqUu8BuYH9wKmEmEH5ACgEPdTJ8GykCVUtMTwU8=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prs-gta5-prod.ros.rockstargames.com
+content-length: 339
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+POST /gta5/11/gameservices/presence.asmx/GetPresenceServers HTTP/1.1
+Accept: */*
+ros-SecurityFlags: 239
+ros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-Challenge: dNjft5WdGh8=
+ros-HeadersHmac: yPuAzgLWvvsrnP09WUwAkNCuvuk=
+Content-Type: application/x-www-form-urlencoded
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55957 -> 192.81.241.100:80) ===
+GET /cloud/11/cloudservices/members/xbl/2535452297422790/secure/gta5/RosGamersSettings_xboxone.json HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: wOi44cpqRfw=
+ros-headershmac: ioTmrEHC2k4a5LR9hE5Wqp7rlrc=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 01 Jan 1970 00:00:00 GMT
+user-agent: ros hOtYIeHWaQ3w1j9V5d50UbmTOk78hDZEqJ1lELU=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55954 -> 192.81.241.100:80) ===
+Y=
+ros-headershmac: 1Gl7xpLtPbG5NZoP6+nvu6XjUpw=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 01 Jan 1970 00:00:00 GMT
+user-agent: ros hOtYIeHWaQ3w1j9V5d50UbmTOk78hDZEqJ1lELU=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 192.81.241.100:80 -> 10.0.0.8:55957) ===
+HTTP/1.1 404 Not Found
+cache-control: no-cache, no-store
+pragma: no-cache
+content-type: text/xml
+expires: -1
+scs-requestid: 82f1f840-ac9b-4b80-9419-a647cbc19933
+ros-headershmac: EBukCd9FvSlu7cjok3BQMDrMuTE=
+date: Sun, 05 Oct 2025 23:01:13 GMT
+content-length: 146
+
+--- BODY (raw, {len(body)} bytes) ---
+b'\x84A\x95>\xb5=\x9dU\x9b\xc7\xeaE,e\x0bR\xa7\x8a\xbayU\xf9\xbcKq\xda\xc5\x18\xa6\xe1h\x85f\xdf\x92\x19\xe4\xdch\xbfD\x0bO%\xed>\xb0\x9e\x1c\xc1/\x11\x12\xd8}0\xe8\xa5~\xf0k\x18B\xe4\xc6\x1a\xe9\x81x\xe9l%\xee\xe3\xa7\x9c\xdb\xd8\xdd\xae\xb0\xed\x03\x8c\x17\xfd\x0eM\x0b\xe39\xee\xeeoS\xe8\xc0\xd9\xf1\xc5\xeak\xe5\xdd\xfes\x8eu\x92\x8a\x81\xee\xbd\xc6r\x8b?\xcfBg\x04(C:\xe2*\xe9/\t\x9f.0~D\x16\xcf\xbb\xdd\xd7\xdf\x95]\xa9\xd6\xd1d'
+====================
+
+=== HTTP REQUEST (from 192.81.241.100:80 -> 10.0.0.8:55954) ===
+HTTP/1.1 391
+cache-control: no-cache, no-store
+pragma: no-cache
+expires: -1
+location: http://prod.cloud.rockstargames.com/titles/gta5/xboxone/legal/version/version_num.xml
+scs-requestid: 4640689f-37b1-4baa-9aab-55a37e2ccee6
+ros-headershmac: m0HkpG/OxZNZi6VDELrjVbVSSVI=
+date: Sun, 05 Oct 2025 23:01:13 GMT
+content-length: 0
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55954 -> 192.81.241.100:80) ===
+GET /cloud/11/cloudservices/titles/gta5/xboxone/0x1a098062.json HTTP/1.1
+accept: */*
+ros-securityflags: 255
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: /GCTRnuAG8o=
+ros-headershmac: ttWfRbAtgpx9/PyNa3dj9shspX4=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 01 Jan 1970 00:00:00 GMT
+user-agent: ros 7cyVvojxpJKZ8fLKjPm5ztC099GVo/vbwbqoj9w=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 192.81.241.100:80 -> 10.0.0.8:55957) ===
+HTTP/1.1 391
+cache-control: no-cache, no-store
+pragma: no-cache
+expires: -1
+location: http://prod.cloud.rockstargames.com/global/sc/events/eventschedule-game-en.json
+scs-requestid: 4f48160c-ed96-45d2-8ba3-f807c97aa15e
+ros-headershmac: H8pbFZusXeNa+hmivoILXbuNJOE=
+date: Sun, 05 Oct 2025 23:01:13 GMT
+content-length: 0
+====================
+
+=== HTTP REQUEST (from 192.81.241.100:80 -> 10.0.0.8:55957) ===
+HTTP/1.1 391
+cache-control: no-cache, no-store
+pragma: no-cache
+expires: -1
+location: http://prod.cloud.rockstargames.com/titles/gta5/xboxone/news/news.json
+scs-requestid: 89b492cf-2874-4a86-9670-88afae8e08b3
+ros-headershmac: GWvsZiVj5hG2mXCpQfoIeHmptfI=
+date: Sun, 05 Oct 2025 23:01:13 GMT
+content-length: 0
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55958 -> 192.81.241.174:80) ===
+; charset=utf-8
+user-agent: ros fqUu8BuYH9wKmEmEH5ACgEPdTJ8GykCVUtMTwU8=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prs-gta5-prod.ros.rockstargames.com
+content-length: 339
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+b'POST /gta5/11/gameservices/Presence.asmx/ReplaceAttributes HTTP/1.1\r\nAccept: */*\r\nros-SecurityFlags: 239\r\nros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=\r\nros-Challenge: Ge97FuSd5HI=\r\nros-HeadersHmac: 9nNNlWksYMDEtglDgT8Xh+xiDe0=\r\nContent-Type: application/x-www-form-urlencoded;'
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55958 -> 192.81.241.174:80) ===
+ charset=utf-8
+user-agent: ros cvgl+BfFFNQGxUKME80JiE+AR5cKl0udXo4YyUM=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prs-gta5-prod.ros.rockstargames.com
+content-length: 648
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+b"\xf8%\xf8f\x9e/H^9\xf8>\n\xf3\x9b\x99\x92\x1a#\xf0OW$Y\x85;\xb8\xc8~l\xc8FUD\x1f\xe2\xcf\x86\x03\xb4)\xda\x8f\xb5`\xd2\x1c\xd9Q\x84\xda!cT[\x08n\x8ag\x13\xe0:\xa7\xef\xe7\x1d\xc5\x00$\x8f8\xdf\tuM\xc2&*\x88,\x82\xc3\x12\x1c{\xb9\x8dO\x81\x84\xd8\xf3l'\xe1oVTj\x19V\xb78\xe6wH\xcd\xd5\x18\x1d\x97\xe9\x03\x005\xd6\xb4\x1a\xd8_\x87\xaa\xa3\xd1u;\x13)\xbe.`\xbe\xd3\x15\xa0\x85 \n\x05\x0c\xa8\xde\t\r\xbe\x8e!\x8bh\xfaj\x98\x88\x06|\xaa\x01\xff\xa8\xaf\xe4\xbf\x18\xa8\xd1\xff3RS\x0bl\x17\x10\xec\xe9\xde0c\xef\xb7\x16\x12hl\x8ar\xbd\x04\tg\xeb\xb1\x11\xdf[kc\x0f\x9ar\x8a\x8f\xc8,\x8f%0\x06\xcb\x0f\xea\x9d\x99P\xd0^Y\xacxl\xcb\x16\x9d=\x8e\x13\x97\x9a\x0c\xc4\x80\x18/\x93\xa9\x81l\xae\x05N\x8e\xb3\x86X\xb4\xd0\xf0\xd9\x98Se\x99&;\xa6&\xefS\xefzb\xfb\x94\xe9&O\r?\xef/]\xa5|\xa9\x12\xa2Ub\xa0\x97\xc3\x19r\x8fiIu\xb1(\xef\xf0\x93Hd\x00{Gb\x91\xbe\xdd\xc4;\xb6\xe1\xd7%4n#\x8c#e\xefq\xc8\x85\xb7e\xd7\x91U\xb5\x1f\xe4\x1800z\xfaj\xc6w\xb5\xb3\xff\x97 \x1a\x0es\xaf##Ub\xc4\xc0v\xb7\x8ee\x97\xf6_\x11\xc9z.\x1d\xdcx\x86\xa6\xe6S\xf4\x00\x04S\xed\x14`\xc4L1\xf4\tt\x16J,}\xfc\x88\x0erS\xd5\xf8mg\xac\xb0\xf1\xdeT\x04\xde\xf2\xa0\x7f!OqE\xd2\xf9Q\xe8`\xad\xab\x9d\x0e\xb9G\x0f\xbdS\xbaym\x98>\xe3V\xd6\xbb\x12P\xd9U\xb4\xfa\xc0\xe3~\xbd\x16\xe4\xef;\x98qL\xffE\xdf\xe9\xc5.\x97zF[(\xfd\xd9xT\xdek\xbe\xdd\x9b[\x97\xa8Bf\x1dj\xfc\x8f\x184\xf7iH\xaf\xc6[m\xebB\x9eP\xf6\xe0\xf6\x1d\xec\xc0\xd3\xab\xa5\xfb\x10`Z9\xd4\xb6\xf9nUi\x13\x14\xa7\x89qi\xb0\tE:\x8b\x06\xae\x8d\x0c\x98\x07K\xa3RA\x82s6l\xa3\x8d\xd2M\x1ayol(4\x91W\xc9\xc9\xfa+\x88\x8bG\x02\xb1\x8cD>\xff\x10\x11\x8b\x81k\xcc\xe2\xfb\ni\xe5\xe3\x8a\xa3a!\x15-\xca\x9e\x9f\xf8Bl\xa9=\x86\xed\x84\x96j8]y\xf6i\xf8\x01\xa4\x02lz\x87\xcfy\xc1y*\xe4;\xa5\x02;\x034\xc1\xe9,\x1b\xb3\xf6\xe8\x83\r\xafa\x88\xfb\xec\xd1<\x9e#\xa5=[j$\xb8;\x88\xef\xae\xc9\xb7\x1aR\x01aL\xf8"
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55960 -> 23.202.2.86:80) ===
+GET /titles/gta5/xboxone/dictionary.json HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: WjwDgcn/iK0=
+ros-headershmac: KX0f/y8LVYbrG9VqqKnghQHAxGE=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Fri, 19 Jul 2024 03:54:17 GMT
+user-agent: ros 0hkQU7ckIX+mJHcnsyw8I+9hcjyqdn42/m8tYuM=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.cloud.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55964 -> 192.81.241.100:80) ===
+GET /cloud/11/cloudservices/titles/gta5/xboxone/bgscripts/bg_ng_3570_0.rpf HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: vFp/EgJQXSE=
+ros-headershmac: WWBdqmkB4/JtqLu9DHf4jSBFa3k=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 11 Sep 2025 08:53:19 GMT
+user-agent: ros +v9DWZ/CcnWOwiQtm8pvKceHITaCkC081ol+aMs=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55965 -> 192.81.241.100:80) ===
+GET /cloud/11/cloudservices/members/sc/229276313/GTA5/dog/appxblxboxone.json HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: 3kERQTbaHCE=
+ros-headershmac: ly2JhfqJ1vwPFrCj81s61xYp5YI=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 01 Jan 1970 00:00:00 GMT
+user-agent: ros 86ER8ZacIN2HnHaFkpQ9gc7Zc56Lzn+U39cswMI=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 192.81.241.100:80 -> 10.0.0.8:55964) ===
+HTTP/1.1 391
+cache-control: no-cache, no-store
+pragma: no-cache
+expires: -1
+location: http://prod.cloud.rockstargames.com/titles/gta5/xboxone/bgscripts/bg_ng_3570_0_rpf-Versions/59869fec-a590-49de-8ba4-c4b4dc90504a.rpf
+scs-requestid: 39e11912-2e2e-4769-a0ea-c7cd0b4d1216
+ros-contentsignature: XI8exNCnFs+MVQbOaeBDz3W33lkFPDe8nwM8ohDweu6DLvMLWolqbnET5tJS2rqktg6HyJzjO6mIrfOLH2r/6t+1WdAm105bzebWyqEb7d7dg6+bCphIWFiXS0iMJaQwkkZAE+jt9XkP0ihwJPQZgayQIJXj/ovWzhlrWHOLVOY=
+ros-headershmac: 2ZtaFsTt2jy1RCvzNRa217J7zB0=
+date: Sun, 05 Oct 2025 23:01:27 GMT
+content-length: 0
+====================
+
+=== HTTP REQUEST (from 192.81.241.100:80 -> 10.0.0.8:55965) ===
+HTTP/1.1 404 Not Found
+cache-control: no-cache, no-store
+pragma: no-cache
+content-type: text/xml
+expires: -1
+scs-requestid: f0b9090f-8664-43da-9d7e-693d5539a8b0
+ros-headershmac: NDwzN8cHeWhYs2RSF10jnLOHDB4=
+date: Sun, 05 Oct 2025 23:01:27 GMT
+content-length: 146
+
+--- BODY (raw, {len(body)} bytes) ---
+b'\x0b\xd8\xb5\xac~A\x1bNX\xac\x9e\xf3\x9eqx]\xe9@\xa7\xdd\xaf\xe2\x95\x04\x8f\x10r\x98\xaa\xee.\xfc%\xe9\x00p%\xfbH\x8a\xb9z#b\xeb\xacJ\xe9\xd2\xa20\x0cH\x99\x9b8CY\x97+R\x11,KZ\xc7\x19\xf0/G\x1c\xe9\x85\xc4+7y\xb8\x18\xec-\x08\xf1"\x19%\x8c\xb8o|\x865\xab\x89y\xa0\xd0\xd1"\xc4\x955q\xba%\xe3\xffL\xcc\x98\xbf\xe3\x10\xf3N\x96\x0e@C\xdc\xbc.ur\x15#=\x97\xaa:3\xf7\x9bF\xb8\xf1R\xb5L\xaf\xc5|h\xb5S\x04'
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55960 -> 23.202.2.86:80) ===
+GET /titles/gta5/xboxone/text/savegame_migration_cloud_text_en.xml HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: tlYGkYIPRGY=
+ros-headershmac: El5m+1j7mkUvENolnF2NBeeUHG8=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 01 Jan 1970 00:00:00 GMT
+user-agent: ros pAebFsE6qjrQOvxixTK3Zpl/+XncaPVziHGmJ5U=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.cloud.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55959 -> 23.202.2.86:80) ===
+GET /titles/gta5/xboxone/bgscripts/bg_ng_3570_0_rpf-Versions/59869fec-a590-49de-8ba4-c4b4dc90504a.rpf HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: vFp/EgJQXSE=
+ros-headershmac: WWBdqmkB4/JtqLu9DHf4jSBFa3k=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 11 Sep 2025 08:53:19 GMT
+user-agent: ros +v9DWZ/CcnWOwiQtm8pvKceHITaCkC081ol+aMs=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.cloud.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55965 -> 192.81.241.100:80) ===
+GET /cloud/11/cloudservices/members/sc/229276313/GTA5/car/gamexblxboxone.json HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: SngKvYslwzQ=
+ros-headershmac: uhKFM6AQ6GB0A/JsgXZBWU1ukew=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 01 Jan 1970 00:00:00 GMT
+user-agent: ros NOsERFHWNWhA1mMwVd4oNAmTZitMhGohGJ05dQU=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55965 -> 192.81.241.100:80) ===
+GET /cloud/11/cloudservices/members/sc/229276313/GTA5/car/appxblxboxone.json HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: a32W01pcznA=
+ros-headershmac: a7Uo8gF88aWZcSuGRANvjDc/Px4=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+if-modified-since: Thu, 01 Jan 1970 00:00:00 GMT
+user-agent: ros F+EMXnLcPXJj3GsqdtQgLiqZbjFvjmI7O5cxbyY=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+connection: Keep-Alive
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55965 -> 192.81.241.100:80) ===
+POST /cloud/11/cloudservices/members/sc/229276313/GTA5/dog HTTP/1.1
+accept: */*
+ros-securityflags: 239
+ros-sessionticket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=
+ros-challenge: JZWMWS6zl+o=
+ros-headershmac: KOtQG5OJ6BxkNCQOKm+8fu8Jdc8=
+scs-ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+content-type: multipart/form-data; boundary=--------------------68e2f8c7
+user-agent: ros ObcV9FyKJNhNinKAWII5hATPd5tB2HuRFcEoxQg=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+content-length: 295
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+b'POST /cloud/11/cloudservices/members/sc/229276313/GTA5/dog HTTP/1.1\r\nAccept: */*\r\nros-SecurityFlags: 239\r\nros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=\r\nros-Challenge: JZWMWS6zl+o=\r\nros-HeadersHmac: KOtQG5OJ6BxkNCQOKm+8fu8Jdc8=\r\nScs-'
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55965 -> 192.81.241.100:80) ===
+Ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+content-type: multipart/form-data; boundary=--------------------68e2f8c7
+user-agent: ros ObcV9FyKJNhNinKAWII5hATPd5tB2HuRFcEoxQg=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+content-length: 295
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+b'POST /cloud/11/cloudservices/members/sc/229276313/GTA5/dog HTTP/1.1\r\nAccept: */*\r\nros-SecurityFlags: 239\r\nros-SessionTicket: AQEQKUjYC51c/BV7BrDUo/CX3xQAoy2IeFiusW46TxsyHTubik5hoYro8THaXk1Lt/gvOhCyNi7lZCy73Ytwlo8=\r\nros-Challenge: 7EH970YbUoM=\r\nros-HeadersHmac: Kg7+TWFBCNVme9kuS4Vj6pWIQBs=\r\nScs-'
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55965 -> 192.81.241.100:80) ===
+Ticket: AwAQiT0AI2X97ZG0ewHWf9F896EAuTuMmEadW9THv5Vr+lMAy9OA/cw95gIXLLzEqRuf63s4FdgY+QwCyM9pLI5z/YAMo6SY0VNaKON8p1ZuCgUXeMxiqo+njavdKXtLvopUyvSTgHQaeoUs6vkMsrA8KNZJ8N6tQCApJCiK+amU8JNET0pdUDR8IQujJAn4YzqTDe1qut57yEhRyzv1CY8t5JtqA5jZmpELeQsEpBt/i8f0Jhkwgi9ibr+pxK7qgLvlmEfgVSZW+EjBxIE=
+content-type: multipart/form-data; boundary=--------------------68e2f8c7
+user-agent: ros DNqheWnnkFV458YNbe+NCTGiwxZ0tc8cIKycSD0=
+accept-language: en-US,en;q=0.5
+ua-cpu: AMD64
+accept-encoding: gzip, deflate
+host: prod.ros.rockstargames.com
+content-length: 295
+connection: Keep-Alive
+cache-control: no-cache
+
+--- BODY (raw, {len(body)} bytes) ---
+b'\x0c\xda\xa1y\x18&F\xf0)\x83a\xfd\x027\xf9\xce}\xb6\xe5\xa5\xa5\x8e\x9c?6\\\x84\x0ei!\x96\xd8\xbd\x8c7\xae\xdc\xe4u\xf9\xe6\x80\xb6\xe2\x8fg1\xec\xf6\x00K3H\tR\xcd\xe9\xab\xb1\xc8\x13\xfc\x9d96\xe9\x01\x8cDrI\xae\xc8t\x93\x91\xcd\x9e\x03\x93\x1a\x85\xb6s\x0b\xb0\xbd6\xf8\xa6_\x98\x07R9\x04\xd0x\xe6\xbd\x9b7\xce\x9f\xd4\xaaca\xef\xf2\xb1\x0c\xb0\x1b9\x18\x03\x1c\xfe\xdf~{\xa0\xac\'\xb8\xc9\xde8J\x89\xc4\xa4\xa1\xc8\xa9\r<\xb5T\xd9\x8b\xc7\x82\x19\x1214\'\xcb=\xd5\xbd\x06\xe1{\xad\x9fY"-z\n7\xa1\xe0\x827\x12x\xe5\x9bg\xb9_\xb3\x05\xbb3\x88g~\xa4\xa9\x8aix%\xc1T\xe7\x08\x8e;\xaf_\xd3\xa8\xe7\xbd\xccHs\x83\xbe\x8aG\x12!!6j\xe2\xfe\x9c+\xfe\xb9\xbf6\xe2\xfc\xf4\xe4\xbf\x03\x14\x80>`\xbe\x8a\xb7\x1b\x87e\xfd?\xbe\x8d4\xf3\x89\x1c\xa3b\x99\xb6II\xb5Yz\x12\xc1y\xd1\xdd\xb1\x8a\xaf\xd1\xcf(g\x85\xcc8^\xc2y\x95\xb5\xa0\xd3\x9a\xd7\x83\x03\x85\x8d\xa9~\x1cO<\xaf\xd4\xe1p\xadOg\x81\x18'
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55966 -> 142.251.182.94:80) ===
+GET /r/r1.crl HTTP/1.1
+cache-control: max-age = 3000
+connection: Keep-Alive
+accept: */*
+if-modified-since: Thu, 03 Apr 2025 14:18:00 GMT
+user-agent: Microsoft-CryptoAPI/10.0
+host: c.pki.goog
+====================
+
+=== HTTP REQUEST (from 142.251.182.94:80 -> 10.0.0.8:55966) ===
+HTTP/1.1 200 OK
+x-content-type-options: nosniff
+cross-origin-resource-policy: cross-origin
+content-length: 993
+accept-ranges: bytes
+content-security-policy-report-only: require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/cacerts
+cross-origin-opener-policy: same-origin; report-to="cacerts"
+report-to: {"group":"cacerts","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/cacerts"}]}
+server: sffe
+x-xss-protection: 0
+date: Sun, 05 Oct 2025 22:14:07 GMT
+expires: Sun, 05 Oct 2025 23:04:07 GMT
+cache-control: public, max-age=3000
+last-modified: Thu, 03 Apr 2025 16:14:25 GMT
+content-type: application/pkix-crl
+vary: Accept-Encoding
+age: 2877
+
+--- BODY (raw, {len(body)} bytes) ---
+b'0\x82\x03\xdd0\x82\x01\xc5\x02\x01\x010\r\x06\t*\x86H\x86\xf7\r\x01\x01\x0b\x05\x000G1\x0b0\t\x06\x03U\x04\x06\x13\x02US1"0 \x06\x03U\x04\n\x13\x19Google Trust Services LLC1\x140\x12\x06\x03U\x04\x03\x13\x0bGTS Root R1\x17\r250403080000Z\x17\r260228075959Z0\x82\x01\x170/\x02\x10nG\xa9\xc9\xa5S\xe3\xc2\xce\x1f\x14N\xd7}\xac\xe7\x17\r190930000000Z0\x0c0\n\x06\x03U\x1d\x15\x04\x03\n\x01\x050,\x02\r\x02\x03\xf3X\x88\x16\x16\x0e\nE\'\xf2\xa5\x17\r230613000000Z0\x0c0\n\x06\x03U\x1d\x15\x04\x03\n\x01\x050,\x02\r\x01\xf0\xf7\x9d^x\'\xfb@\xa9\x12\xb3\x10\x17\r230613000000Z0\x0c0\n\x06\x03U\x1d\x15\x04\x03\n\x01\x050,\x02\r\x02\x03\xbcP\xa3\'S\xf0\x91\x80"\xed\xf1\x17\r250403080000Z0\x0c0\n\x06\x03U\x1d\x15\x04\x03\n\x01\x050,\x02\r\x02\x03\xbcSYk4\xc7\x18\xf5\x01Pf\x17\r250403080000Z0\x0c0\n\x06\x03U\x1d\x15\x04\x03\n\x01\x050,\x02\r\x02\x00\x8e\xb2\x0236e\x8bd\xcd\xdb\x9b\x17\r250403080000Z0\x0c0\n\x06\x03U\x1d\x15\x04\x03\n\x01\x05\xa0/0-0\n\x06\x03U\x1d\x14\x04\x03\x02\x01\x170\x1f\x06\x03U\x1d#\x04\x180\x16\x80\x14\xe4\xaf+&q\x1a+H\'\x85/Rf,\xef\xf0\x89\x13q>0\r\x06\t*\x86H\x86\xf7\r\x01\x01\x0b\x05\x00\x03\x82\x02\x01\x00\x9d\xf3ag\xee\xd38\xa7\x15m\x83\x9d\x15$\xe1\xb6@au\x08Y\x92\xdd\xcb\xdc`\xb4\xfd\xc2\x8c\xf9a$\xeb2\x89C\x13\x8b\xfb{\xef\x0b\x9e\x84\xe6\xfeT6i\xb6"\xa8CA{\x1a\xe8\xd9)\x8f\xb5\xe3\xc4\x02z\x8d\xe6\xd6|M\x93P#5\xfc\x00\xdd"[.R\\^\xc7_\x1f4x\x02\x11\xcf\xee\xaak\xe3\xbb\xb3U72\xb0\x80:\x15\xa3\x1a[}\xa0\xe9\x10\x84\xa6\xf6{\xb9\x88\xbbp4\xd5\x06\xc2\t\xe5\xbf\xb7\x1a1\xab\xd4\xdfM\x830\xc2\x91\x82\xd4i\x8b\xf5#\xbcu\xd7\xab\xec\x95\xd37\xe82\xc5E\xd4\xf1\nIN\xa9\xa43\x1c\xdd\xeeC\x0f!\xce\xea4\xb5\xc0j\xab\xee\xa2;\xfb\xea6\x86\xb1k\xff\x1c%\xb4M\xb7\x05\tl\x0f\xf8<\xa6\xa3-\xbe)\x06\x92\x88<}\xf3\xbf\x80\t^Uq\xbd\xfc\xc8HTTP/1.1 200 OK\r\nX-Content-Type-Options: nosniff\r\nCross-Origin-Resource-Policy: cross-origin\r\nContent-Length: 993\r\nAccept-Ranges: bytes\r\nContent-Security-Policy-Report-Only: require-trusted-types-for \'script\'; report-uri https://csp.withgoogle.com/csp/cacerts\r\nCross-Origin-Opener-Policy: same-'
+====================
+
+=== HTTP REQUEST (from 142.251.182.94:80 -> 10.0.0.8:55966) ===
+origin; report-to="cacerts"
+report-to: {"group":"cacerts","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/cacerts"}]}
+server: sffe
+x-xss-protection: 0
+date: Sun, 05 Oct 2025 22:14:07 GMT
+expires: Sun, 05 Oct 2025 23:04:07 GMT
+cache-control: public, max-age=3000
+last-modified: Thu, 03 Apr 2025 16:14:25 GMT
+content-type: application/pkix-crl
+vary: Accept-Encoding
+age: 2877
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55967 -> 23.220.218.129:80) ===
+GET / HTTP/1.1
+cache-control: max-age = 3600
+connection: Keep-Alive
+accept: */*
+if-modified-since: Tue, 09 Sep 2025 21:20:19 GMT
+if-none-match: "68c09a13-2de"
+user-agent: Microsoft-CryptoAPI/10.0
+host: x1.c.lencr.org
+====================
+
+=== HTTP REQUEST (from 23.220.218.129:80 -> 10.0.0.8:55967) ===
+HTTP/1.1 304 Not Modified
+content-type: application/pkix-crl
+last-modified: Tue, 09 Sep 2025 21:20:19 GMT
+etag: "68c09a13-2de"
+cache-control: max-age=3600
+expires: Mon, 06 Oct 2025 00:02:05 GMT
+date: Sun, 05 Oct 2025 23:02:05 GMT
+connection: keep-alive
+====================
+
+=== HTTP REQUEST (from 10.0.0.8:55966 -> 142.251.182.94:80) ===
+GET /r/r4.crl HTTP/1.1
+cache-control: max-age = 3000
+connection: Keep-Alive
+accept: */*
+if-modified-since: Thu, 03 Apr 2025 14:18:00 GMT
+user-agent: Microsoft-CryptoAPI/10.0
+host: c.pki.goog
+====================
+
+=== HTTP REQUEST (from 142.251.182.94:80 -> 10.0.0.8:55966) ===
+0�Ý0�Å0
+��æþt6i¶"¨ca{èù)�µãäz�æö|m�p#5üý"[.r\^ç_4xïîªkã»³u72°�: £[} é�¦ö{¹�»p4ÕÂ        å¿·1«ÔßM�0Â��Ôi�õ#¼u×«ì�Ó7è2ÅEÔñ
+server: sffe
+x-xss-protection: 0
+date: Sun, 05 Oct 2025 22:14:19 GMT
+expires: Sun, 05 Oct 2025 23:04:19 GMT
+cache-control: public, max-age=3000
+last-modified: Thu, 03 Apr 2025 16:14:25 GMT
+content-type: application/pkix-crl
+vary: Accept-Encoding
+age: 2866
+====================
