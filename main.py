@@ -5,7 +5,9 @@ import ipaddress
 import time
 import threading
 import windows
-import winreg
+if os.name == "nt":
+    import winreg
+
 
 settings = {}
 
@@ -223,4 +225,5 @@ def main():
     Allow_ipv4_fowarding(0)
 
 main()
+
 
