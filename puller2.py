@@ -12,7 +12,7 @@ import IP_INFO
 import Store
 from datetime import datetime
 from flask import Flask, render_template_string, jsonify, request
-
+import mobile
 # Shared global data
 target = []
 invalid_local_hosts = []
@@ -343,7 +343,7 @@ def handle_packet(packet):
 
             if src_ip == target[0]:
                 src_ip = dst_ip
-        
+
             if src_ip not in captured_ips and src_ip not in invalid_local_hosts:
                 Store.Store_ip(src_ip)
                 info = IP_INFO.get_ip(src_ip)
@@ -352,7 +352,7 @@ def handle_packet(packet):
                     join_times[src_ip] = join_times[src_ip] + 1
                 else:
                     join_times[src_ip] = 1
-        
+
                 captured_ips[src_ip] = [
                     datetime.now().strftime('%H:%M:%S'),
                     info[0],
@@ -365,7 +365,7 @@ def handle_packet(packet):
                     info[6],
                     join_times[src_ip],
                 ]
-        
+
                 concurrent_connection[src_ip] = {"packets": 1, "pps": 0}
                 new_connection[src_ip] = time.time()
             else:
@@ -604,21 +604,25 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, po
     game_choice = choose()
     stop_event = threading.Event()
 
-    sniffer_thread = threading.Thread(target=sniffing, args=(Target_IP, local, game_choice, interface, port),
+    sniffer_thread = threading.Thread(target=sniffing, args=(Target_IP, local, game_choice, interface, port, mobile),
                                       daemon=True)
     conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=True)
     conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=True)
     flask_thread = threading.Thread(target=start_site, daemon=True)
+    mobile_foward_thread = threading.Thread(target=mobile.main, args=(interface, Target_IP, Spoof_IP), daemon=True)
     if Target_MAC is not None:
         arp_thread = threading.Thread(target=Packet_Sender,
                                       args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, stop_event, interface),
                                       daemon=True)
         arp_thread.start()
+        if mobile == "yes":
+            mobile_foward_thread.start()
 
     sniffer_thread.start()
     conn_thread.start()
     conn_thread2.start()
     flask_thread.start()
+
     try:
         while not stop_event.is_set():
             time.sleep(0.5)

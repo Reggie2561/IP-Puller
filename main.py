@@ -5,9 +5,7 @@ import ipaddress
 import time
 import threading
 import windows
-if os.name == "nt":
-    import winreg
-
+import winreg
 
 settings = {}
 
@@ -24,7 +22,7 @@ active_interface = []
 
 def recieve_interface():
     if os.name == "posix":
-        cmd = "ip a | grep \"state UP\" | awk -F: '{print $2}' | tr -d ' '"
+        cmd = "nmcli device status | awk '$3 == \"connected\" {print $1}'"
         interfaces = os.popen(cmd).read()
         interfaces = str(interfaces).split()
         count = 0
@@ -64,15 +62,16 @@ def Allow_ipv4_fowarding(status, interface):
     ##0 off
     ##1 on
     if os.name == "posix":
-        with os.popen("sudo sysctl net.ipv4.ip_forward") as status_:
-            if status_.read().strip() == "net.ipv4.ip_forward = 0":
+        if settings["mobile"] == "no":
+            with os.popen("sudo sysctl net.ipv4.ip_forward") as status_:
+                if status_.read().strip() == "net.ipv4.ip_forward = 0":
 
-                if status == 1:
-                    os.system("sudo sysctl -w net.ipv4.ip_forward=1")
-        if status == 0:
-            os.system("sudo sysctl -w net.ipv4.ip_forward=0")
-        del status
-        del status_
+                    if status == 1:
+                        os.system("sudo sysctl -w net.ipv4.ip_forward=1")
+            if status == 0:
+                os.system("sudo sysctl -w net.ipv4.ip_forward=0")
+            del status
+            del status_
     elif os.name == "nt":
         if status == 1:
             windows.enable_ipv4_forwarding_win(interface, 1)
@@ -145,10 +144,10 @@ def main_page():
                 port = input("Enter Consoles Internal Port: ")
                 settings["console_port"] = port
             with open("puller.settings", "w") as f:
-                f.write(f"interface {settings['interface']}\nsubnet {settings["subnet"]}\nconsole {settings['console']}\nconsole_port {settings['console_port']}")
+                f.write(f"interface {settings['interface']}\nsubnet {settings["subnet"]}\nconsole {settings['console']}\nconsole_port {settings['console_port']}\nMobile: {settings['mobile']}")
     elif pick == "2":
         print("Discord Server Code: AXHy4A4U\nDiscord Username: Reggie2561")
-        input("Press enter to continue")
+        input("Press ENTER to Continue")
         main_page()
 def main():
 
@@ -213,7 +212,8 @@ def main():
         Console_port = input("Enters Console Internal Port: ")
     else:
         Console_port = settings["console_port"]
-    puller.startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, list(sorted_ips), interface, Console_port)
+
+    puller.startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, list(sorted_ips), interface, Console_port, settings["mobile"])
 
 
 
@@ -225,5 +225,3 @@ def main():
     Allow_ipv4_fowarding(0)
 
 main()
-
-
