@@ -12,7 +12,7 @@ import IP_INFO
 import Store
 from datetime import datetime
 from flask import Flask, render_template_string, jsonify, request
-import mobile
+import mobile as mobile_script
 # Shared global data
 target = []
 invalid_local_hosts = []
@@ -586,7 +586,7 @@ def sniffing(Target_IP, localhosts, game_choice, interface, console_port):
 # -------------------
 
 
-def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, port):
+def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, port, mobile):
     global arp_thread
     choice = input("1. (Peer 2 Peer)\n2. (Servers)\n3. (Sniff All)\nChoice (1-3): ")
 
@@ -610,7 +610,7 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, po
     conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=True)
     flask_thread = threading.Thread(target=start_site, daemon=True)
     if Target_MAC is not None:
-        mobile_foward_thread = threading.Thread(target=mobile.main, args=(interface, Target_IP, Spoof_IP), daemon=True)
+        mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP), daemon=True)
         arp_thread = threading.Thread(target=Packet_Sender,
                                       args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, stop_event, interface),
                                       daemon=True)
