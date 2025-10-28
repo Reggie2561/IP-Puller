@@ -113,7 +113,7 @@ def main_page():
 ==================================================================================
             """
             print(art)
-            print(f"Interface: {settings["interface"]}\nSubnet: {settings['subnet']}\nConsole: {settings['console']}\nConsole_port: {settings['console_port']}")
+            print(f"Interface: {settings["interface"]}\nSubnet: {settings['subnet']}\nConsole: {settings['console']}\nConsole_port: {settings['console_port']}\nMobile: {settings['mobile']}")
             print("command: [settings_name] [set] or press enter to continue")
             print("console changes both subnet and console IP")
             input_ = input("> ").lower()
