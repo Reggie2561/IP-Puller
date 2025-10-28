@@ -140,6 +140,12 @@ def main_page():
             elif command == "set" and setting == "console_port":
                 port = input("Enter Consoles Internal Port: ")
                 settings["console_port"] = port
+            elif command == "set" and setting == "mobile":
+                pick = input("Are you using A Mobile Phone (Rooted) ?\n1. (yes)\n2. (no)")
+                if pick == "1":
+                    settings["mobile"] = "yes"
+                elif pick == "2":
+                    settings["mobile"] = "no"
             with open("puller.settings", "w") as f:
                 f.write(f"interface {settings['interface']}\nsubnet {settings["subnet"]}\nconsole {settings['console']}\nconsole_port {settings['console_port']}\nMobile: {settings['mobile']}")
     elif pick == "2":
