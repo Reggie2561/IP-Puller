@@ -22,7 +22,7 @@ active_interface = []
 
 def recieve_interface():
     if os.name == "posix":
-        cmd = "nmcli device status | awk '$3 == \"connected\" {print $1}'"
+        cmd = "ip a | grep \"state UP\" | awk -F: '{print $2}' | tr -d ' '"
         interfaces = os.popen(cmd).read()
         interfaces = str(interfaces).split()
         count = 0
@@ -223,3 +223,4 @@ def main():
     Allow_ipv4_fowarding(0)
 
 main()
+
