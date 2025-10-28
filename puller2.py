@@ -22,12 +22,13 @@ disconnected = {}
 concurrent_connection = {}
 new_connection = {}
 removed = {}
-last_seen = {}      # track last update time per IP
+last_seen = {}  # track last update time per IP
 left_session = {}
 join_times = {}
 pps_history = {}
 unstable = {}
 app = Flask(__name__)
+
 
 # -----------------------
 # Flask: index (dynamic)
@@ -109,6 +110,8 @@ def update_ips():
     }
 
     return jsonify({"rows": result, "stats": stats})
+
+
 # ---------------------
 # updates left players
 # ---------------------
@@ -146,6 +149,7 @@ def ReggiesMultiTool():
         html = f.read()
     return render_template_string(html)
 
+
 # ----------------------
 # multitool back end
 # ----------------------
@@ -166,7 +170,7 @@ def ping_target(target):
 
     try:
         if os.name == "posix":
-            cmd = ["ping", "-c", "4", target_normalized]   # linux example; windows differs
+            cmd = ["ping", "-c", "4", target_normalized]  # linux example; windows differs
             with os.popen(f"{cmd[0]} {cmd[3]} {cmd[1]} {cmd[2]}") as stdout:
                 output = stdout.read()
         elif os.name == "nt":
@@ -181,6 +185,7 @@ def ping_target(target):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/Conn_type+<target>', methods=['POST'])
 def Conn_type(target):
     ip = urllib.parse.unquote_plus(target)
@@ -189,7 +194,8 @@ def Conn_type(target):
 
     text = f"Organization: {data['org']}\nAS Number: {data['as']}\nMobile?: {data['mobile']}\nVPN?: {data['proxy']}\nHosting?: {data['hosting']}"
 
-    return jsonify({"text" : text})
+    return jsonify({"text": text})
+
 
 @app.route('/nmap+<target>', methods=['POST'])
 def nmap_target(target):
@@ -197,7 +203,7 @@ def nmap_target(target):
     session = requests.session()
 
     session.headers.update({
-                               "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"})
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"})
     session.get("https://hackertarget.com/nmap-online-port-scanner/")
     data = session.post('https://hackertarget.com/nmap-online-port-scanner/', data={"theinput": f"{ip}",
                                                                                     "thetest": "nmap",
@@ -212,6 +218,7 @@ def nmap_target(target):
         "target": ip,
         "results": results[0].get_text(strip=True) if results else "No output found."
     })
+
 
 @app.route('/usernameLookUp+<username>', methods=['POST'])
 def username_lookup_target(username):
@@ -234,6 +241,7 @@ def username_lookup_target(username):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/Traceroute+<ip>', methods=['POST'])
 def Traceroute(ip):
     # -------------------------
@@ -250,11 +258,13 @@ def Traceroute(ip):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 # -----------------------
 # Start Flask
 # -----------------------
 def start_site():
     app.run(host="0.0.0.0", port=1234, debug=True, use_reloader=False)
+
 
 # -----------------------
 # packet spoofer
@@ -264,6 +274,7 @@ def ARP_PacketSpoofer(tip, tmac, spoofip, interface):
     scapy.send(pkt, verbose=0)
     scapy.send(pkt, verbose=0)
     del pkt
+
 
 # ------------------------
 # Packet sender
@@ -277,6 +288,7 @@ def Packet_Sender(Target_IP, Target_Mac, Spoofip, SpoofMAC, stop, interface):
         except:
             break
 
+
 # ------------------------
 # Packet handling
 # ------------------------
@@ -289,8 +301,6 @@ def handle_packet(packet):
 
             if src_ip == target[0]:
                 src_ip = dst_ip
-
-
 
             if src_ip not in captured_ips and src_ip not in invalid_local_hosts:
                 Store.Store_ip(src_ip)
@@ -306,7 +316,7 @@ def handle_packet(packet):
                 # -----------------------------------------------
                 # Store captured IP info with consistent indices
                 # -----------------------------------------------
-                
+
                 captured_ips[src_ip] = [
                     datetime.now().strftime('%H:%M:%S'),  # Time
                     info[0],  # ISP
@@ -318,14 +328,13 @@ def handle_packet(packet):
                     src_port,  # Port
                     info[6],  # Username
                     join_times[src_ip],
-                    "" # 1
-                    ]
-                    concurrent_connection[src_ip] = {"packets": 1, "pps": 0}
-                    new_connection[src_ip] = time.time()
+                    ""  # 1
+                ]
+                concurrent_connection[src_ip] = {"packets": 1, "pps": 0}
+                new_connection[src_ip] = time.time()
             else:
                 concurrent_connection[src_ip]["packets"] += 1
                 captured_ips[src_ip][0] = datetime.now().strftime('%H:%M:%S')
-
 
         elif IP in packet and packet.haslayer("TCP"):
             src_ip = packet[IP].src
@@ -334,7 +343,7 @@ def handle_packet(packet):
 
             if src_ip == target[0]:
                 src_ip = dst_ip
-
+        
             if src_ip not in captured_ips and src_ip not in invalid_local_hosts:
                 Store.Store_ip(src_ip)
                 info = IP_INFO.get_ip(src_ip)
@@ -343,46 +352,44 @@ def handle_packet(packet):
                     join_times[src_ip] = join_times[src_ip] + 1
                 else:
                     join_times[src_ip] = 1
-
+        
                 captured_ips[src_ip] = [
-                datetime.now().strftime('%H:%M:%S'),
-                info[0],
-                info[1],
-                info[2],
-                info[3],
-                info[4],
-                info[5],
-                src_port,
-                info[6],
-                join_times[src_ip],
+                    datetime.now().strftime('%H:%M:%S'),
+                    info[0],
+                    info[1],
+                    info[2],
+                    info[3],
+                    info[4],
+                    info[5],
+                    src_port,
+                    info[6],
+                    join_times[src_ip],
                 ]
-
+        
                 concurrent_connection[src_ip] = {"packets": 1, "pps": 0}
                 new_connection[src_ip] = time.time()
             else:
                 concurrent_connection[src_ip]["packets"] += 1
 
-
     except:
         error = traceback.format_exc()
         print(error)
+
 
 # -----------------------
 # Connection tracking
 # -----------------------
 def conncurent(stop, offset=0):
-
-
     # --------------------------------------------
     # Configurable parameters
     # --------------------------------------------
-    cya_ip = 20               # Seconds until removed connection marked as left_session
-    stuck_timeout = 40        # Seconds until stuck IPs are purged
-    check_delay = 8           # Snapshot interval
-    min_pps = 0.25            # PPS threshold for activity
-    max_unstable_hits = 2     # Consecutive low PPS counts before disconnect
-    pps_window_len = 3        # Sliding window size for PPS average
-    max_left_session = 30     # Max entries stored in left_session
+    cya_ip = 20  # Seconds until removed connection marked as left_session
+    stuck_timeout = 40  # Seconds until stuck IPs are purged
+    check_delay = 8  # Snapshot interval
+    min_pps = 0.25  # PPS threshold for activity
+    max_unstable_hits = 2  # Consecutive low PPS counts before disconnect
+    pps_window_len = 3  # Sliding window size for PPS average
+    max_left_session = 30  # Max entries stored in left_session
 
     # --------------------------------------------
     # Globals assumed from outer scope
@@ -473,12 +480,11 @@ def conncurent(stop, offset=0):
                 if current - start_time > 5:
                     new_connection.pop(new_ip, None)
 
-
             # ------------------------
             # removed → left_session
             # ------------------------
             for conn, t in list(removed.items()):
-                print(current-t)
+                print(current - t)
                 print(current - t > cya_ip)
                 if current - t > cya_ip:
                     removed.pop(conn, None)
@@ -496,10 +502,9 @@ def conncurent(stop, offset=0):
                             info[8] if len(info) > 8 else "",
                             info[6] if len(info) > 6 else "",
                             1,
-                            ]
+                        ]
                     else:
                         left_session[conn][8] += 1
-
 
                     # Cleanup connection data
                     captured_ips.pop(conn, None)
@@ -518,7 +523,7 @@ def conncurent(stop, offset=0):
                         disconnected,
                         removed,
                         unstable,
-                        ]:
+                    ]:
                         d.pop(conn, None)
                     if conn in connected:
                         connected.remove(conn)
@@ -574,6 +579,8 @@ def sniffing(Target_IP, localhosts, game_choice, interface, console_port):
         prn=handle_packet,
         store=0
     )
+
+
 # -------------------
 # Start all threads
 # -------------------
@@ -582,9 +589,11 @@ def sniffing(Target_IP, localhosts, game_choice, interface, console_port):
 def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, port):
     global arp_thread
     choice = input("1. (Peer 2 Peer)\n2. (Servers)\n3. (Sniff All)\nChoice (1-3): ")
+
     def choose():
         if choice == "1":
-            game = input("1. Grand Theft Auto V\n2. Grand Theft Auto VI\n3. Call Of Duty 3\n4. Monopoly\n5. Minecraft (Private Worlds)\nPick a Choice (1-4): ")
+            game = input(
+                "1. Grand Theft Auto V\n2. Grand Theft Auto VI\n3. Call Of Duty 3\n4. Monopoly\n5. Minecraft (Private Worlds)\nPick a Choice (1-4): ")
         elif choice == "2":
             game = input("1. Roblox (Servers Only)\n2. Gang Beast (Servers Only)\nChoose (1-2): ")
         elif choice == "3":
@@ -595,12 +604,15 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, po
     game_choice = choose()
     stop_event = threading.Event()
 
-    sniffer_thread = threading.Thread(target=sniffing, args=(Target_IP, local, game_choice, interface, port), daemon=True)
+    sniffer_thread = threading.Thread(target=sniffing, args=(Target_IP, local, game_choice, interface, port),
+                                      daemon=True)
     conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=True)
     conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=True)
     flask_thread = threading.Thread(target=start_site, daemon=True)
     if Target_MAC is not None:
-        arp_thread = threading.Thread(target=Packet_Sender, args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, stop_event, interface),  daemon=True)
+        arp_thread = threading.Thread(target=Packet_Sender,
+                                      args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, stop_event, interface),
+                                      daemon=True)
         arp_thread.start()
 
     sniffer_thread.start()
@@ -624,5 +636,6 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, po
     conn_thread.join()
     conn_thread2.join()
     flask_thread.join()
+
 
 
