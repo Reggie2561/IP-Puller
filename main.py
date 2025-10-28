@@ -2,10 +2,7 @@ import os
 import puller2 as puller
 import scapy.all as scapy
 import ipaddress
-import time
-import threading
 import windows
-import winreg
 
 settings = {}
 
@@ -22,7 +19,7 @@ active_interface = []
 
 def recieve_interface():
     if os.name == "posix":
-        cmd = "nmcli device status | awk '$3 == \"connected\" {print $1}'"
+        cmd = "ip a | grep \"state UP\" | awk -F: '{print $2}' | tr -d ' '"
         interfaces = os.popen(cmd).read()
         interfaces = str(interfaces).split()
         count = 0
