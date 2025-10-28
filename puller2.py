@@ -306,22 +306,22 @@ def handle_packet(packet):
                 # -----------------------------------------------
                 # Store captured IP info with consistent indices
                 # -----------------------------------------------
-
-                captured_ips[src_ip] = [
-                    datetime.now().strftime('%H:%M:%S'),  # Time
-                    info[0],  # ISP
-                    info[1],  # Country
-                    info[2],  # State
-                    info[3],  # City
-                    info[4],  # ZIP
-                    info[5],  # Extra info / optional
-                    src_port,  # Port
-                    info[6],  # Username
-                    join_times[src_ip],
-                    "" # 1
-                ]
-                concurrent_connection[src_ip] = {"packets": 1, "pps": 0}
-                new_connection[src_ip] = time.time()
+                if src_ip in join_times:
+                    captured_ips[src_ip] = [
+                        datetime.now().strftime('%H:%M:%S'),  # Time
+                        info[0],  # ISP
+                        info[1],  # Country
+                        info[2],  # State
+                        info[3],  # City
+                        info[4],  # ZIP
+                        info[5],  # Extra info / optional
+                        src_port,  # Port
+                        info[6],  # Username
+                        join_times[src_ip],
+                        "" # 1
+                    ]
+                    concurrent_connection[src_ip] = {"packets": 1, "pps": 0}
+                    new_connection[src_ip] = time.time()
             else:
                 concurrent_connection[src_ip]["packets"] += 1
                 captured_ips[src_ip][0] = datetime.now().strftime('%H:%M:%S')
@@ -621,3 +621,4 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, po
     conn_thread.join()
     conn_thread2.join()
     flask_thread.join()
+
