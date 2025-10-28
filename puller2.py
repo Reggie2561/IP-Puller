@@ -604,13 +604,13 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, po
     game_choice = choose()
     stop_event = threading.Event()
 
-    sniffer_thread = threading.Thread(target=sniffing, args=(Target_IP, local, game_choice, interface, port, mobile),
+    sniffer_thread = threading.Thread(target=sniffing, args=(Target_IP, local, game_choice, interface, port),
                                       daemon=True)
     conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=True)
     conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=True)
     flask_thread = threading.Thread(target=start_site, daemon=True)
-    mobile_foward_thread = threading.Thread(target=mobile.main, args=(interface, Target_IP, Spoof_IP), daemon=True)
     if Target_MAC is not None:
+        mobile_foward_thread = threading.Thread(target=mobile.main, args=(interface, Target_IP, Spoof_IP), daemon=True)
         arp_thread = threading.Thread(target=Packet_Sender,
                                       args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, stop_event, interface),
                                       daemon=True)
