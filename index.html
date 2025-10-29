@@ -1,233 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>IP Puller Made By Reggie</title>
-  <style>
-   body { font-family: Arial; background: #0f172a; color: white; margin:0; padding:0;}
-   main { padding: 100px 20px 20px; display:flex; flex-direction:column; align-items:center;}
-   table { border-collapse: collapse; width: 95%; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 40px;}
-   th, td { padding:10px 14px; text-align:left; border-bottom:1px solid #334155; color:white;}
-   th { background-color:#111827; color:#f8fafc;}
-   tr:hover { background-color:#374151; }
-   .status-dot { height:10px; width:10px; border-radius:50%; display:inline-block; margin-right:8px;}
-   .highlight-new { animation: fadeIn 1s ease; background-color: #22c55e44; }
-   @keyframes fadeIn { from {background-color:#22c55e88;} to {background-color:transparent;} }
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IP Puller Made By Reggie</title>
+<style>
+body { font-family: Arial; background: #0f172a; color: white; margin:0; padding:0;}
+main { padding: 100px 20px 20px; display:flex; flex-direction:column; align-items:center;}
+table { border-collapse: collapse; width: 95%; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 40px;}
+th, td { padding:10px 14px; text-align:left; border-bottom:1px solid #334155; color:white;}
+th { background-color:#111827; color:#f8fafc;}
+tr:hover { background-color:#374151; }
+.status-dot { height:10px; width:10px; border-radius:50%; display:inline-block; margin-right:8px;}
+.highlight-new { animation: fadeIn 1s ease; background-color: #22c55e44; }
+@keyframes fadeIn { from {background-color:#22c55e88;} to {background-color:transparent;} }
 
-   .top-bar { position: fixed; top: 0; left: 0; right: 0; background: #111827; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; z-index: 1000; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
-   .top-bar h3 { margin: 0; font-size: 1rem; color: #f8fafc; }
+.top-bar { position: fixed; top: 0; left: 0; right: 0; background: #111827; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; z-index: 1000; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
+.top-bar h3 { margin: 0; font-size: 1rem; color: #f8fafc; }
 
-   #barToggleBtn, #multiToolBtn { padding: 5px 10px; border: none; border-radius: 5px; background: #2563eb; color: white; cursor: pointer; font-weight: bold; }
-   #barToggleBtn:hover, #multiToolBtn:hover { background: #1d4ed8; }
+#barToggleBtn, #multiToolBtn { padding: 5px 10px; border: none; border-radius: 5px; background: #2563eb; color: white; cursor: pointer; font-weight: bold; }
+#barToggleBtn:hover, #multiToolBtn:hover { background: #1d4ed8; }
 
-   .ip-text { cursor:pointer; text-decoration:underline; }
-   .username-text { cursor:pointer; text-decoration:underline; color: #facc15; }
+.ip-text { cursor:pointer; text-decoration:underline; }
+.username-text { cursor:pointer; text-decoration:underline; color: #facc15; }
 
-   .field-btns { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-bottom:15px; }
-   .bar-btn { padding:6px 10px; border:none; border-radius:5px; background:#2563eb; color:white; cursor:pointer; font-weight:bold; font-size:0.8rem; }
-   .bar-btn:hover { background:#1d4ed8; }
-  </style>
- </head>
- <body>
-  <div class="top-bar" id="topBar">
-   <h3 id="headerText">Loading...</h3>
-   <div style="display:flex; gap:8px;">
+.field-btns { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-bottom:15px; }
+.bar-btn { padding:6px 10px; border:none; border-radius:5px; background:#2563eb; color:white; cursor:pointer; font-weight:bold; font-size:0.8rem; }
+.bar-btn:hover { background:#1d4ed8; }
+
+/* MOBILE STACKING */
+@media screen and (max-width: 768px) {
+  table, thead, tbody, th, td, tr { display: block; width: 100%; }
+  thead tr { display: none; }
+
+  tr {
+    margin-bottom: 12px;
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+
+  td {
+    display: block; /* stack label + value together */
+    padding: 4px 0;
+    text-align: left;
+    border: none;
+    border-bottom: 1px solid #334155;
+  }
+
+  td::before {
+    content: attr(data-label) ": ";
+    font-weight: bold;
+    color: #f8fafc;
+    margin-right: 4px; /* small gap between label and value */
+  }
+
+  td span.ip-text, td span.username-text {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+</style>
+</head>
+<body>
+<div class="top-bar" id="topBar">
+  <h3 id="headerText">Loading...</h3>
+  <div style="display:flex; gap:8px;">
     <button id="barToggleBtn" onclick="toggleBar()">Hide Bar</button>
     <button id="multiToolBtn" onclick="openMultiTool()">MultiTool</button>
-   </div>
   </div>
-  <main>
-   <h2>Reggie's IP Puller</h2>
-   <div class="field-btns">
-    {% for name in field_names %}
-    <button class="bar-btn" onclick="toggleColumn({{ loop.index0 }})">Toggle {{ name }}</button>
-    {% endfor %}
-   </div>
-   <table id="ipTable">
-    <thead>
-     <tr>
+</div>
+
+<main>
+<h2>Reggie's IP Puller</h2>
+<div class="field-btns">
+  {% for name in field_names %}
+  <button class="bar-btn" onclick="toggleColumn({{ loop.index0 }})">Toggle {{ name }}</button>
+  {% endfor %}
+</div>
+
+<table id="ipTable">
+  <thead>
+    <tr>
       {% for name in field_names %}
       <th>{{ name }}</th>
       {% endfor %}
-     </tr>
-    </thead>
-    <tbody id="ipBody"></tbody>
-   </table>
-   <h2>Last 30 Left Players</h2>
-   <table id="leftTable">
-    <thead>
-     <tr>
+    </tr>
+  </thead>
+  <tbody id="ipBody"></tbody>
+</table>
+
+<h2>Last 30 Left Players</h2>
+<table id="leftTable">
+  <thead>
+    <tr>
       {% for name in left_field_names %}
       <th>{{ name }}</th>
       {% endfor %}
-     </tr>
-    </thead>
-    <tbody id="leftBody"></tbody>
-   </table>
-  </main>
-  <script>
-    const hiddenCols = new Set();
-    const tbody = document.getElementById('ipBody');
-    const leftBody = document.getElementById('leftBody');
-    const headerText = document.getElementById('headerText');
-    const topBar = document.getElementById('topBar');
-    const barToggleBtn = document.getElementById('barToggleBtn');
-    let barVisible = true;
+    </tr>
+  </thead>
+  <tbody id="leftBody"></tbody>
+</table>
+</main>
 
-    function toggleBar() {
-        barVisible = !barVisible;
-        topBar.style.transform = barVisible ? "translateY(0)" : "translateY(-100%)";
-        barToggleBtn.textContent = barVisible ? "Hide Bar" : "Show Bar";
+<!-- Pass Jinja field names to JS -->
+<script>
+const field_names_js = {{ field_names|tojson }};
+const left_field_names_js = {{ left_field_names|tojson }};
+</script>
+
+<script>
+const hiddenCols = new Set();
+const tbody = document.getElementById('ipBody');
+const leftBody = document.getElementById('leftBody');
+const headerText = document.getElementById('headerText');
+const topBar = document.getElementById('topBar');
+const barToggleBtn = document.getElementById('barToggleBtn');
+let barVisible = true;
+
+function toggleBar() {
+    barVisible = !barVisible;
+    topBar.style.transform = barVisible ? "translateY(0)" : "translateY(-100%)";
+    barToggleBtn.textContent = barVisible ? "Hide Bar" : "Show Bar";
+}
+
+function openMultiTool() { window.open('/ReggiesMultiTool', '_blank'); }
+
+function toggleColumn(index) {
+    [document.getElementById('ipTable'), document.getElementById('leftTable')].forEach(table => {
+        for (let row of table.rows) {
+            if (row.cells[index]) row.cells[index].style.display = row.cells[index].style.display === 'none' ? '' : 'none';
+        }
+    });
+    hiddenCols.has(index) ? hiddenCols.delete(index) : hiddenCols.add(index);
+}
+
+function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(console.error);
+    } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try { document.execCommand("copy"); } catch(err){ console.error(err);}
+        document.body.removeChild(textarea);
     }
+}
 
-    function openMultiTool() {
-        window.open('/ReggiesMultiTool', '_blank');
+function handleCellClick(e) {
+    const ipSpan = e.target.closest('.ip-text');
+    if (ipSpan) { copyToClipboard(ipSpan.textContent.trim()); ipSpan.style.backgroundColor = "#22c55e88"; setTimeout(()=>ipSpan.style.backgroundColor="",500);}
+    const userSpan = e.target.closest('.username-text');
+    if (userSpan) {
+        const ip = userSpan.dataset.ip;
+        const username = prompt("Enter username for IP: "+ip);
+        if (username) fetch('/save_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip,username})}).then(()=>{userSpan.textContent=username;}).catch(console.error);
     }
+}
 
-    function toggleColumn(index) {
-        const tables = [document.getElementById('ipTable'), document.getElementById('leftTable')];
-        tables.forEach(table => {
-            for (let row of table.rows) {
-                if (row.cells[index]) {
-                    row.cells[index].style.display = row.cells[index].style.display === 'none' ? '' : 'none';
-                }
-            }
+tbody.addEventListener('click', handleCellClick);
+leftBody.addEventListener('click', handleCellClick);
+
+const statusColors = {"concurrent":"#ffffff","connected":"#22c55e","removed":"#7c3aed","disconnected":"#eab308","new_connection":"#3b82f6","left":"#ef4444"};
+function createStatusDot(color){return `<span class="status-dot" style="background:${color}"></span>`;}
+
+async function fetchData() {
+    try {
+        const res = await fetch('/update_ips',{method:'PUT'});
+        const data = await res.json();
+        const rows = data.rows;
+        const stats = data.stats;
+        headerText.innerHTML = `
+            ${createStatusDot(statusColors.concurrent)} IP's: ${stats.concurrent} &nbsp; | &nbsp;
+            ${createStatusDot(statusColors.connected)} Connected: ${stats.connected} &nbsp; | &nbsp;
+            ${createStatusDot(statusColors.removed)} Disconnected: ${stats.removed} &nbsp; | &nbsp;
+            ${createStatusDot(statusColors.disconnected)} Just Disconnected: ${stats.disconnected} &nbsp; | &nbsp;
+            ${createStatusDot(statusColors.new_connection)} Just Connected: ${stats.new_connection} &nbsp; | &nbsp;
+            ${createStatusDot(statusColors.left)} Left Players: ${stats.left_players}
+        `;
+        const priority={"purple":0,"yellow":1,"green":2,"blue":3,"red":4};
+        rows.sort((a,b)=>priority[a.status]-priority[b.status]);
+        tbody.innerHTML='';
+        rows.forEach(row=>{
+            const tr=document.createElement('tr');
+            if(row.status==='blue') tr.classList.add('highlight-new');
+            row.fields.forEach((f,idx)=>{
+                const td=document.createElement('td');
+                td.setAttribute('data-label', field_names_js[idx]);
+                if(idx===0) td.innerHTML=`${createStatusDot(row.status)} <span class="ip-text">${f.value}</span>`;
+                else if(idx===8) td.innerHTML=`<span class="username-text" data-ip="${row.ip}">${f.value}</span>`;
+                else td.textContent=f.value;
+                td.style.display=hiddenCols.has(idx)?'none':'';
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
         });
-        if (hiddenCols.has(index)) hiddenCols.delete(index);
-        else hiddenCols.add(index);
-    }
+    } catch(err){console.error(err);}
+}
 
-    function copyToClipboard(text) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).catch(err => console.error("Clipboard error:", err));
-        } else {
-            const textarea = document.createElement("textarea");
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            try { document.execCommand("copy"); } catch(err) { console.error("Fallback copy failed:", err);}
-            document.body.removeChild(textarea);
-        }
-    }
-
-    function handleCellClick(e) {
-        const ipSpan = e.target.closest('.ip-text');
-        if (ipSpan) {
-            copyToClipboard(ipSpan.textContent.trim());
-            ipSpan.style.backgroundColor = "#22c55e88";
-            setTimeout(() => ipSpan.style.backgroundColor = "", 500);
-        }
-
-        const userSpan = e.target.closest('.username-text');
-        if (userSpan) {
-            const ip = userSpan.dataset.ip;
-            const username = prompt("Enter username for IP: " + ip);
-            if (username) {
-                fetch('/save_username', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ip: ip, username: username })
-                }).then(() => { userSpan.textContent = username; })
-                  .catch(err => console.error(err));
-            }
-        }
-    }
-
-    tbody.addEventListener('click', handleCellClick);
-    leftBody.addEventListener('click', handleCellClick);
-
-    const statusColors = {
-        "concurrent": "#ffffff",
-        "connected": "#22c55e",
-        "removed": "#7c3aed",
-        "disconnected": "#eab308",
-        "new_connection": "#3b82f6",
-        "left": "#ef4444"
-    };
-
-    function createStatusDot(color) {
-        return `<span class="status-dot" style="background:${color}"></span>`;
-    }
-
-    async function fetchData() {
-        try {
-            const res = await fetch('/update_ips', { method: 'PUT' });
-            const data = await res.json();
-            const rows = data.rows;
-            const stats = data.stats;
-
-            headerText.innerHTML = `
-                ${createStatusDot(statusColors.concurrent)} IP's: ${stats.concurrent} &nbsp; | &nbsp;
-                ${createStatusDot(statusColors.connected)} Connected: ${stats.connected} &nbsp; | &nbsp;
-                ${createStatusDot(statusColors.removed)} Disconnected: ${stats.removed} &nbsp; | &nbsp;
-                ${createStatusDot(statusColors.disconnected)} Just Disconnected: ${stats.disconnected} &nbsp; | &nbsp;
-                ${createStatusDot(statusColors.new_connection)} Just Connected: ${stats.new_connection} &nbsp; | &nbsp;
-                ${createStatusDot(statusColors.left)} Left Players: ${stats.left_players}
-            `;
-
-            const priority = { "purple":0, "yellow":1, "green":2, "blue":3, "red":4 };
-            rows.sort((a,b) => priority[a.status] - priority[b.status]);
-
-            tbody.innerHTML = '';
-            rows.forEach(row => {
-                const tr = document.createElement('tr');
-                if (row.status === 'blue') tr.classList.add('highlight-new');
-
-                row.fields.forEach((f, idx) => {
-                    const td = document.createElement('td');
-                    if (idx === 0) {
-                        td.innerHTML = `${createStatusDot(row.status)} <span class="ip-text">${f.value}</span>`;
-                    } else if (idx === 8) {
-                        td.innerHTML = `<span class="username-text" data-ip="${row.ip}">${f.value}</span>`;
-                    } else {
-                        td.textContent = f.value;
-                    }
-                    td.style.display = hiddenCols.has(idx) ? 'none' : '';
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
+async function fetchLeftData() {
+    try {
+        const res = await fetch('/update_left_ips',{method:'PUT'});
+        const data = await res.json();
+        const rows = data.rows;
+        leftBody.innerHTML='';
+        rows.forEach(row=>{
+            const tr=document.createElement('tr');
+            row.fields.forEach((f,idx)=>{
+                const td=document.createElement('td');
+                td.setAttribute('data-label', left_field_names_js[idx]);
+                if(idx===0) td.innerHTML=`${createStatusDot(statusColors.left)} <span class="ip-text">${f.value}</span>`;
+                else if(idx===6) td.innerHTML=`<span class="username-text" data-ip="${row.ip}">${f.value}</span>`;
+                else td.textContent=f.value;
+                td.style.display=hiddenCols.has(idx)?'none':'';
+                tr.appendChild(td);
             });
+            leftBody.appendChild(tr);
+        });
+    } catch(err){console.error(err);}
+}
 
-        } catch (err) { console.error(err); }
-    }
-
-    async function fetchLeftData() {
-        try {
-            const res = await fetch('/update_left_ips', { method: 'PUT' });
-            const data = await res.json();
-            const rows = data.rows;
-
-            leftBody.innerHTML = '';
-            rows.forEach(row => {
-                const tr = document.createElement('tr');
-
-                row.fields.forEach((f, idx) => {
-                    const td = document.createElement('td');
-
-                    // left_field_names indices: 0=IP, 1=ISP, ..., 6=Username, 7=Left Times
-                    if (idx === 0) {
-                        td.innerHTML = `${createStatusDot(statusColors.left)} <span class="ip-text">${f.value}</span>`;
-                    } else if (idx === 6) {
-                        td.innerHTML = `<span class="username-text" data-ip="${row.ip}">${f.value}</span>`;
-                    } else {
-                        td.textContent = f.value;
-                    }
-
-                    td.style.display = hiddenCols.has(idx) ? 'none' : '';
-                    tr.appendChild(td);
-                });
-
-                leftBody.appendChild(tr);
-            });
-
-        } catch (err) { console.error(err); }
-    }
-
-    setInterval(fetchData, 1500);
-    setInterval(fetchLeftData, 5000);
-    fetchData();
-    fetchLeftData();
-  </script>
+setInterval(fetchData,1500);
+setInterval(fetchLeftData,5000);
+fetchData();
+fetchLeftData();
+</script>
 </body>
 </html>
