@@ -11,61 +11,105 @@ table { border-collapse: collapse; width: 95%; background: #1e293b; border-radiu
 th, td { padding:10px 14px; text-align:left; border-bottom:1px solid #334155; color:white;}
 th { background-color:#111827; color:#f8fafc;}
 tr:hover { background-color:#374151; }
-.status-dot { height:10px; width:10px; border-radius:50%; display:inline-block; margin-right:8px;}
+.status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
 .highlight-new { animation: fadeIn 1s ease; background-color: #22c55e44; }
 @keyframes fadeIn { from {background-color:#22c55e88;} to {background-color:transparent;} }
 
-.top-bar { position: fixed; top: 0; left: 0; right: 0; background: #111827; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; z-index: 1000; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
-.top-bar h3 { margin: 0; font-size: 1rem; color: #f8fafc; }
+/* === TOP BAR === */
+.top-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 10px;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
 
-#barToggleBtn, #multiToolBtn { padding: 5px 10px; border: none; border-radius: 5px; background: #2563eb; color: white; cursor: pointer; font-weight: bold; }
+.scroll-container {
+  flex: 1;
+  overflow: hidden;
+}
+
+.scroll-content {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: scrollLoop 20s linear infinite;
+}
+
+.scroll-text {
+  display: inline-block;
+  padding-right: 50px; /* spacing between duplicates */
+}
+
+/* Hide clone by default */
+#scrollTextClone { display: none; }
+
+@keyframes scrollLoop {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* move exactly one copy width */
+}
+
+/* Show duplicate only on mobile for scrolling */
+@media (max-width: 768px) {
+  #scrollTextClone { display: inline-block; }
+}
+
+/* Static on desktop */
+@media (min-width: 769px) {
+  .scroll-content { animation: none; }
+}
+
+/* Top-bar buttons */
+.top-bar-buttons {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#barToggleBtn, #multiToolBtn {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 5px;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
 #barToggleBtn:hover, #multiToolBtn:hover { background: #1d4ed8; }
 
-.ip-text { cursor:pointer; text-decoration:underline; }
-.username-text { cursor:pointer; text-decoration:underline; color: #facc15; }
-
+/* FIELD BUTTONS */
 .field-btns { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-bottom:15px; }
 .bar-btn { padding:6px 10px; border:none; border-radius:5px; background:#2563eb; color:white; cursor:pointer; font-weight:bold; font-size:0.8rem; }
 .bar-btn:hover { background:#1d4ed8; }
 
-/* MOBILE STACKING */
+/* MOBILE TABLE STACKING */
 @media screen and (max-width: 768px) {
   table, thead, tbody, th, td, tr { display: block; width: 100%; }
   thead tr { display: none; }
-
-  tr {
-    margin-bottom: 12px;
-    background: #1e293b;
-    border-radius: 8px;
-    padding: 8px 12px;
-  }
-
-  td {
-    display: block; /* stack label + value together */
-    padding: 4px 0;
-    text-align: left;
-    border: none;
-    border-bottom: 1px solid #334155;
-  }
-
-  td::before {
-    content: attr(data-label) ": ";
-    font-weight: bold;
-    color: #f8fafc;
-    margin-right: 4px; /* small gap between label and value */
-  }
-
-  td span.ip-text, td span.username-text {
-    text-decoration: underline;
-    cursor: pointer;
-  }
+  tr { margin-bottom: 12px; background: #1e293b; border-radius: 8px; padding: 8px 12px; }
+  td { display: block; padding: 4px 0; text-align: left; border: none; border-bottom: 1px solid #334155; }
+  td::before { content: attr(data-label) ": "; font-weight: bold; color: #f8fafc; margin-right: 4px; }
+  td span.ip-text, td span.username-text { text-decoration: underline; cursor: pointer; }
 }
 </style>
 </head>
 <body>
+
 <div class="top-bar" id="topBar">
-  <h3 id="headerText">Loading...</h3>
-  <div style="display:flex; gap:8px;">
+  <div class="scroll-container">
+    <div class="scroll-content">
+      <span class="scroll-text" id="scrollText">Loading...</span>
+      <span class="scroll-text" id="scrollTextClone">Loading...</span>
+    </div>
+  </div>
+  <div class="top-bar-buttons">
     <button id="barToggleBtn" onclick="toggleBar()">Hide Bar</button>
     <button id="multiToolBtn" onclick="openMultiTool()">MultiTool</button>
   </div>
@@ -103,17 +147,15 @@ tr:hover { background-color:#374151; }
 </table>
 </main>
 
-<!-- Pass Jinja field names to JS -->
 <script>
 const field_names_js = {{ field_names|tojson }};
 const left_field_names_js = {{ left_field_names|tojson }};
-</script>
 
-<script>
 const hiddenCols = new Set();
 const tbody = document.getElementById('ipBody');
 const leftBody = document.getElementById('leftBody');
-const headerText = document.getElementById('headerText');
+const scrollText = document.getElementById('scrollText');
+const scrollTextClone = document.getElementById('scrollTextClone');
 const topBar = document.getElementById('topBar');
 const barToggleBtn = document.getElementById('barToggleBtn');
 let barVisible = true;
@@ -135,76 +177,58 @@ function toggleColumn(index) {
     hiddenCols.has(index) ? hiddenCols.delete(index) : hiddenCols.add(index);
 }
 
-function copyToClipboard(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).catch(console.error);
-    } else {
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try { document.execCommand("copy"); } catch(err){ console.error(err);}
-        document.body.removeChild(textarea);
-    }
-}
-
-function handleCellClick(e) {
-    const ipSpan = e.target.closest('.ip-text');
-    if (ipSpan) { copyToClipboard(ipSpan.textContent.trim()); ipSpan.style.backgroundColor = "#22c55e88"; setTimeout(()=>ipSpan.style.backgroundColor="",500);}
-    const userSpan = e.target.closest('.username-text');
-    if (userSpan) {
-        const ip = userSpan.dataset.ip;
-        const username = prompt("Enter username for IP: "+ip);
-        if (username) fetch('/save_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip,username})}).then(()=>{userSpan.textContent=username;}).catch(console.error);
-    }
-}
-
-tbody.addEventListener('click', handleCellClick);
-leftBody.addEventListener('click', handleCellClick);
-
 const statusColors = {"concurrent":"#ffffff","connected":"#22c55e","removed":"#7c3aed","disconnected":"#eab308","new_connection":"#3b82f6","left":"#ef4444"};
 function createStatusDot(color){return `<span class="status-dot" style="background:${color}"></span>`;}
 
+function updateTopBarText(html){
+  scrollText.innerHTML = html;
+  scrollTextClone.innerHTML = html;
+}
+
+// IP Table + Top Bar
 async function fetchData() {
     try {
         const res = await fetch('/update_ips',{method:'PUT'});
         const data = await res.json();
         const rows = data.rows;
         const stats = data.stats;
-        headerText.innerHTML = `
-            ${createStatusDot(statusColors.concurrent)} IP's: ${stats.concurrent} &nbsp; | &nbsp;
-            ${createStatusDot(statusColors.connected)} Connected: ${stats.connected} &nbsp; | &nbsp;
-            ${createStatusDot(statusColors.removed)} Disconnected: ${stats.removed} &nbsp; | &nbsp;
-            ${createStatusDot(statusColors.disconnected)} Just Disconnected: ${stats.disconnected} &nbsp; | &nbsp;
-            ${createStatusDot(statusColors.new_connection)} Just Connected: ${stats.new_connection} &nbsp; | &nbsp;
-            ${createStatusDot(statusColors.left)} Left Players: ${stats.left_players}
-        `;
-        const priority={"purple":0,"yellow":1,"green":2,"blue":3,"red":4};
+
+        const html =
+            `${createStatusDot(statusColors.concurrent)} IP's: ${stats.concurrent} &nbsp; | &nbsp;` +
+            `${createStatusDot(statusColors.connected)} Connected: ${stats.connected} &nbsp; | &nbsp;` +
+            `${createStatusDot(statusColors.removed)} Disconnected: ${stats.removed} &nbsp; | &nbsp;` +
+            `${createStatusDot(statusColors.disconnected)} Just Disconnected: ${stats.disconnected} &nbsp; | &nbsp;` +
+            `${createStatusDot(statusColors.new_connection)} Just Connected: ${stats.new_connection} &nbsp; | &nbsp;` +
+            `${createStatusDot(statusColors.left)} Left Players: ${stats.left_players}`;
+        updateTopBarText(html);
+
+        const priority = {"purple":0,"yellow":1,"green":2,"blue":3,"red":4};
         rows.sort((a,b)=>priority[a.status]-priority[b.status]);
-        tbody.innerHTML='';
-        rows.forEach(row=>{
-            const tr=document.createElement('tr');
+        tbody.innerHTML = '';
+        rows.forEach(row => {
+            const tr = document.createElement('tr');
             if(row.status==='blue') tr.classList.add('highlight-new');
             row.fields.forEach((f,idx)=>{
-                const td=document.createElement('td');
+                const td = document.createElement('td');
                 td.setAttribute('data-label', field_names_js[idx]);
                 if(idx===0) td.innerHTML=`${createStatusDot(row.status)} <span class="ip-text">${f.value}</span>`;
                 else if(idx===8) td.innerHTML=`<span class="username-text" data-ip="${row.ip}">${f.value}</span>`;
-                else td.textContent=f.value;
-                td.style.display=hiddenCols.has(idx)?'none':'';
+                else td.textContent = f.value;
+                td.style.display = hiddenCols.has(idx) ? 'none' : '';
                 tr.appendChild(td);
             });
             tbody.appendChild(tr);
         });
-    } catch(err){console.error(err);}
+    } catch(err){ console.error(err);}
 }
 
+// Left Players Table
 async function fetchLeftData() {
     try {
         const res = await fetch('/update_left_ips',{method:'PUT'});
         const data = await res.json();
         const rows = data.rows;
-        leftBody.innerHTML='';
+        leftBody.innerHTML = '';
         rows.forEach(row=>{
             const tr=document.createElement('tr');
             row.fields.forEach((f,idx)=>{
@@ -212,15 +236,30 @@ async function fetchLeftData() {
                 td.setAttribute('data-label', left_field_names_js[idx]);
                 if(idx===0) td.innerHTML=`${createStatusDot(statusColors.left)} <span class="ip-text">${f.value}</span>`;
                 else if(idx===6) td.innerHTML=`<span class="username-text" data-ip="${row.ip}">${f.value}</span>`;
-                else td.textContent=f.value;
-                td.style.display=hiddenCols.has(idx)?'none':'';
+                else td.textContent = f.value;
+                td.style.display = hiddenCols.has(idx)?'none':'';
                 tr.appendChild(td);
             });
             leftBody.appendChild(tr);
         });
-    } catch(err){console.error(err);}
+    } catch(err){ console.error(err);}
 }
 
+// Click Handlers
+function copyToClipboard(text) {
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(console.error);
+    else { const t=document.createElement('textarea'); t.value=text; document.body.appendChild(t); t.select(); try{document.execCommand("copy");}catch{} t.remove();}
+}
+function handleCellClick(e){
+    const ipSpan = e.target.closest('.ip-text');
+    if(ipSpan){ copyToClipboard(ipSpan.textContent.trim()); ipSpan.style.backgroundColor="#22c55e88"; setTimeout(()=>ipSpan.style.backgroundColor="",500);}
+    const userSpan = e.target.closest('.username-text');
+    if(userSpan){ const ip=userSpan.dataset.ip; const username=prompt("Enter username for IP: "+ip); if(username) fetch('/save_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip,username})}).then(()=>{userSpan.textContent=username;}).catch(console.error);}
+}
+tbody.addEventListener('click', handleCellClick);
+leftBody.addEventListener('click', handleCellClick);
+
+// Intervals
 setInterval(fetchData,1500);
 setInterval(fetchLeftData,5000);
 fetchData();
