@@ -606,7 +606,7 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, po
     conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=True)
     flask_thread = threading.Thread(target=start_site, daemon=True)
     if Target_MAC is not None:
-        mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP, 1480), daemon=True)
+        mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP), daemon=True)
         arp_thread = threading.Thread(target=Packet_Sender,
                                       args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, stop_event, interface),
                                       daemon=True)
