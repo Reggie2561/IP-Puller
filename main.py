@@ -113,7 +113,7 @@ def main_page():
 ==================================================================================
             """
             print(art)
-            print(f"Interface: {settings["interface"]}\nSubnet: {settings['subnet']}\nConsole: {settings['console']}\nConsole_port: {settings['console_port']}\nMobile: {settings['mobile']}")
+            print(f"Interface: {settings['interface']}\nSubnet: {settings['subnet']}\nConsole: {settings['console']}\nConsole_port: {settings['console_port']}\nMobile: {settings['mobile']}")
             print("command: [settings_name] [set] or press enter to continue")
             print("console changes both subnet and console IP")
             input_ = input("> ").lower()
@@ -147,7 +147,7 @@ def main_page():
                 elif pick == "2":
                     settings["mobile"] = "no"
             with open("puller.settings", "w") as f:
-                f.write(f"interface {settings['interface']}\nsubnet {settings["subnet"]}\nconsole {settings['console']}\nconsole_port {settings['console_port']}\nMobile: {settings['mobile']}")
+                f.write(f"interface {settings['interface']}\nsubnet {settings['subnet']}\nconsole {settings['console']}\nconsole_port {settings['console_port']}\nmobile {settings['mobile']}")
     elif pick == "2":
         print("Discord Server Code: AXHy4A4U\nDiscord Username: Reggie2561")
         input("Press ENTER to Continue")
