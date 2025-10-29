@@ -11,7 +11,6 @@ with open("puller.settings", "r") as f:
 
 if settings["mobile"] == "yes":
     from fcntl import ioctl
-
 import struct
 
 
