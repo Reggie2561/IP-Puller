@@ -38,7 +38,7 @@ def index():
     field_names = ["IP", "Time", "ISP", "Country", "State", "City", "ZIP", "Port", "Username", "Joined Times", "PPS"]
     left_field_names = ["IP", "ISP", "Country", "State", "City", "ZIP", "Username", "Left Times"]  # no Packets
 
-    with open("index.html") as f:
+    with open("index.html", encoding="utf-8") as f:
         html = f.read()
 
     return render_template_string(html, field_names=field_names, left_field_names=left_field_names)
@@ -106,7 +106,6 @@ def update_ips():
         "disconnected": len(disconnected),
         "new_connection": len(new_connection),
         "left_players": len(left_session),
-        "unstable": len(unstable),
     }
 
     return jsonify({"rows": result, "stats": stats})
@@ -484,13 +483,10 @@ def conncurent(stop, offset=0):
             # removed → left_session
             # ------------------------
             for conn, t in list(removed.items()):
-                print(current - t)
-                print(current - t > cya_ip)
                 if current - t > cya_ip:
                     removed.pop(conn, None)
 
                     info = captured_ips.get(conn, [])
-                    print(info)
                     if conn not in left_session.keys():
                         left_session[conn] = [
                             info[0] if len(info) > 0 else "",

@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 # fast_l2_redirect.py
 import os, sys, socket
-from fcntl import ioctl
+settings = {}
+
+
+with open("puller.settings", "r") as f:
+    for line in f.readlines():
+        settings_name, setting = line.split(" ")
+        settings[settings_name.strip()] = setting.strip()
+
+if settings["mobile"] == "yes":
+    from fcntl import ioctl
 import struct
 
 

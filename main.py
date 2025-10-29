@@ -81,14 +81,12 @@ def main_page():
         os.system("cls")
     elif os.name == "posix":
         os.system("clear")
-    art = """
-  ▄▄▄▄▄▄   ▄▄▄▄▄▄              ▄▄▄▄▄▄              ▄▄▄▄      ▄▄▄▄                         
-  ▀▀██▀▀   ██▀▀▀▀█▄            ██▀▀▀▀█▄            ▀▀██      ▀▀██                         
-    ██     ██    ██            ██    ██  ██    ██    ██        ██       ▄████▄    ██▄████ 
-    ██     ██████▀             ██████▀   ██    ██    ██        ██      ██▄▄▄▄██   ██▀     
-    ██     ██                  ██        ██    ██    ██        ██      ██▀▀▀▀▀▀   ██      
-  ▄▄██▄▄   ██                  ██        ██▄▄▄███    ██▄▄▄     ██▄▄▄   ▀██▄▄▄▄█   ██      
-  ▀▀▀▀▀▀   ▀▀                  ▀▀         ▀▀▀▀ ▀▀     ▀▀▀▀      ▀▀▀▀     ▀▀▀▀▀    ▀▀ 
+    art = """\
+--.--.--.   .--.     . .         
+  |  |   )  |   )    | |         
+  |  |--'   |--'.  . | | .-. .--.
+  |  |      |   |  | | |(.-' |   
+--'--'      '   `--`-`-`-`--''  
   """
     print(art)
     pick = input("1. Ease of Use Settings\n2. Discord Server\npress enter to continue\nChoice (1-2): ")
@@ -102,15 +100,13 @@ def main_page():
             elif os.name == "posix":
                 os.system("clear")
             art = """
-   ▄▄▄▄                                     ██                                  
- ▄█▀▀▀▀█               ██        ██         ▀▀                                  
- ██▄        ▄████▄   ███████   ███████    ████     ██▄████▄   ▄███▄██  ▄▄█████▄ 
-  ▀████▄   ██▄▄▄▄██    ██        ██         ██     ██▀   ██  ██▀  ▀██  ██▄▄▄▄ ▀ 
-      ▀██  ██▀▀▀▀▀▀    ██        ██         ██     ██    ██  ██    ██   ▀▀▀▀██▄ 
- █▄▄▄▄▄█▀  ▀██▄▄▄▄█    ██▄▄▄     ██▄▄▄   ▄▄▄██▄▄▄  ██    ██  ▀██▄▄███  █▄▄▄▄▄██ 
-  ▀▀▀▀▀      ▀▀▀▀▀      ▀▀▀▀      ▀▀▀▀   ▀▀▀▀▀▀▀▀  ▀▀    ▀▀   ▄▀▀▀ ██   ▀▀▀▀▀▀  
-                                                              ▀████▀▀
-==================================================================================
+ .-.      .  .                    
+(   )    _|__|_   o               
+ `-.  .-. |  |    .  .--. .-...--.
+(   )(.-' |  |    |  |  |(   |`--.
+ `-'  `--'`-'`-'-' `-'  `-`-`|`--'
+                          ._.' 
+===================================
             """
             print(art)
             print(f"Interface: {settings['interface']}\nSubnet: {settings['subnet']}\nConsole: {settings['console']}\nConsole_port: {settings['console_port']}\nMobile: {settings['mobile']}")
@@ -164,7 +160,9 @@ def main():
     ip_macs = RecieveHosts()
 
     if settings["console"] not in ip_macs.keys():
+        print("===============================\n\n\n")
         print("OLD CONSOLE IP NO LONGER VALID.")
+        print("\n\n\n===============================\n\n\n")
     sorted_ips = sorted(ip_macs.keys(), key=lambda s: ipaddress.IPv4Address(s))
     sniffing_option = input("1. Xbox / PS4\n2. Local (PC Games)\nChoice: ")
     if settings["interface"] == "null":
