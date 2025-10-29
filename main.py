@@ -3,6 +3,9 @@ import puller2 as puller
 import scapy.all as scapy
 import ipaddress
 import windows
+import setup
+
+setup.check()
 
 settings = {}
 
