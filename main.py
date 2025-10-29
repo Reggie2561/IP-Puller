@@ -159,19 +159,28 @@ def main():
         os.system("cls")
     elif os.name == "posix":
         os.system("clear")
+    if settings["console"] != "null":
+        ip_macs = RecieveHosts()
+        if settings["console"] not in ip_macs.keys():
+            print("===============================\n\n\n")
+            print("OLD CONSOLE IP NO LONGER VALID.")
+            print("\n\n\n===============================\n\n\n")
+    else:
+        ip_macs, subnet = RecieveHosts()
 
-    ip_macs = RecieveHosts()
-
-    if settings["console"] not in ip_macs.keys():
-        print("===============================\n\n\n")
-        print("OLD CONSOLE IP NO LONGER VALID.")
-        print("\n\n\n===============================\n\n\n")
     sorted_ips = sorted(ip_macs.keys(), key=lambda s: ipaddress.IPv4Address(s))
+    for ip in sorted_ips:
+        print(f"{counter + 1}. IP:{ip} MAC:{ip_macs[ip]}")
+        counter += 1
+    pick = input("Pick Your Console IP (1-20): ")
+    settings["console"] = sorted_ips[int(pick) - 1]
+
     sniffing_option = input("1. Xbox / PS4\n2. Local (PC Games)\nChoice: ")
     if settings["interface"] == "null":
         interface = recieve_interface()
     else:
         interface = settings["interface"]
+
     if sniffing_option == "1" and settings["console"] == "null":
         for ip in sorted_ips:
             print(f"{counter + 1}. IP:{ip}      MAC:{ip_macs[ip]}")
