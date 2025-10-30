@@ -58,27 +58,6 @@ def RecieveHosts():
         return Local_Host_Info
 
 
-def Allow_ipv4_fowarding(status, interface):
-    ##0 off
-    ##1 on
-    if os.name == "posix":
-        if settings["mobile"] == "no":
-            with os.popen("sudo sysctl net.ipv4.ip_forward") as status_:
-                if status_.read().strip() == "net.ipv4.ip_forward = 0":
-
-                    if status == 1:
-                        os.system("sudo sysctl -w net.ipv4.ip_forward=1")
-            if status == 0:
-                os.system("sudo sysctl -w net.ipv4.ip_forward=0")
-            del status
-            del status_
-    elif os.name == "nt":
-        if status == 1:
-            windows.enable_ipv4_forwarding_win(interface, 1)
-        if status == 0:
-            windows.enable_ipv4_forwarding_win(interface, 0)
-
-
 def main_page():
     if os.name == "nt":
         os.system("cls")
@@ -169,11 +148,12 @@ def main():
         ip_macs, subnet = RecieveHosts()
 
     sorted_ips = sorted(ip_macs.keys(), key=lambda s: ipaddress.IPv4Address(s))
-    for ip in sorted_ips:
-        print(f"{counter + 1}. IP:{ip} MAC:{ip_macs[ip]}")
-        counter += 1
-    pick = input("Pick Your Console IP (1-20): ")
-    settings["console"] = sorted_ips[int(pick) - 1]
+    if settings["console"] == "null":
+        for ip in sorted_ips:
+            print(f"{counter + 1}. IP:{ip} MAC:{ip_macs[ip]}")
+            counter += 1
+        pick = input("Pick Your Console IP (1-20): ")
+        settings["console"] = sorted_ips[int(pick) - 1]
 
     sniffing_option = input("1. Xbox / PS4\n2. Local (PC Games)\nChoice: ")
     if settings["interface"] == "null":
@@ -193,12 +173,6 @@ def main():
         Spoof_IP = sorted_ips[0]
         Spoof_MAC = ip_macs[Spoof_IP]
 
-
-        Allow_ipv4_fowarding(1, interface)
-
-
-
-
         del pick
     elif sniffing_option == "1" and settings["console"] != "null":
         ip = settings["console"]
@@ -207,11 +181,13 @@ def main():
         Target_MAC = ip_macs[ip]
         Spoof_IP = sorted_ips[0]
         Spoof_MAC = ip_macs[Spoof_IP]
+        Router_MAC = ip_macs[Spoof_IP]
     elif sniffing_option == "2":
         Target_IP = None
         Target_MAC = None
-        Spoof_IP = None
+
         Spoof_MAC = None
+        Router_MAC = None
 
 
 
@@ -226,15 +202,13 @@ def main():
     else:
         Console_port = settings["console_port"]
 
-    puller.startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, list(sorted_ips), interface, Console_port, settings["mobile"])
+    puller.startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Router_MAC, list(sorted_ips), interface, Console_port, settings["mobile"])
 
 
 
     del Target_IP
     del Target_MAC
     del Spoof_IP
-
     del interface
-    Allow_ipv4_fowarding(0)
 
 main()

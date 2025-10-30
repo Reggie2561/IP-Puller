@@ -28,7 +28,7 @@ def enable_ipv4_forwarding_win(interface, status):
                 ["netsh", "interface", "ipv4", "set", "interface", interface, "forwarding=enabled"],
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, shell=False)
 
-            print("IPv4 Forwarding Applied (no reboot).")
+            print("IPv4 Forwarding Applied.")
 
         except Exception as e:
             print("[-] Error while applying forwarding:", e)
@@ -47,10 +47,10 @@ def enable_ipv4_forwarding_win(interface, status):
                 ["netsh", "interface", "ipv4", "set", "interface", interface, "forwarding=disabled"],
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, shell=False)
 
-            print("IPv4 Forwarding Applied (no reboot).")
+            print("IPv4 Forwarding Disabled.")
 
         except Exception as e:
-            print("[-] Error while applying forwarding:", e)
+            print("[-] Error while removing forwarding:", e)
 
 def recieve_interface():
     output = subprocess.check_output("netsh interface show interface", shell=False, text=True)

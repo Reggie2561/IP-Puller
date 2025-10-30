@@ -12,6 +12,7 @@ import IP_INFO
 import Store
 from datetime import datetime
 from flask import Flask, render_template_string, jsonify, request
+import windows
 # Shared global data
 target = []
 invalid_local_hosts = []
@@ -26,6 +27,7 @@ left_session = {}
 join_times = {}
 pps_history = {}
 unstable = {}
+settings = {}
 app = Flask(__name__)
 
 
@@ -263,28 +265,64 @@ def Traceroute(ip):
 def start_site():
     app.run(host="0.0.0.0", port=1234, debug=True, use_reloader=False)
 
+# ------------------------
+# Traffic Fowarding
+# ------------------------
+def Allow_ipv4_fowarding(status, interface):
+    ##0 off
+    ##1 on
+    if os.name == "posix":
+        if settings["mobile"] == "no":
+            with os.popen("sudo sysctl net.ipv4.ip_forward") as status_:
+                if status_.read().strip() == "net.ipv4.ip_forward = 0":
+
+                    if status == 1:
+                        os.system("sudo sysctl -w net.ipv4.ip_forward=1")
+            if status == 0:
+                os.system("sudo sysctl -w net.ipv4.ip_forward=0")
+
+            del status
+            del status_
+    elif os.name == "nt":
+        if status == 1:
+            windows.enable_ipv4_forwarding_win(interface, 1)
+        if status == 0:
+            windows.enable_ipv4_forwarding_win(interface, 0)
+
 
 # -----------------------
 # packet spoofer
 # -----------------------
-def ARP_PacketSpoofer(tip, tmac, spoofip, interface):
-    pkt = scapy.ARP(op=2, pdst=tip, hwdst=tmac, psrc=spoofip)
-    scapy.send(pkt, verbose=0)
-    scapy.send(pkt, verbose=0)
-    del pkt
+def ARP_PacketSpoofer(tip, tmac, spoofip, Router=None):
+    if Router is None:
+        pkt = scapy.ARP(op=2, pdst=tip, hwdst=tmac, psrc=spoofip)
+        scapy.send(pkt, verbose=0)
+        scapy.send(pkt, verbose=0)
+        del pkt
+    else:
+        pkt = scapy.ARP(op=2, pdst=tip, hwdst=tmac, psrc=spoofip, hwsrc=Router)
+        scapy.send(pkt, verbose=0)
+        scapy.send(pkt, verbose=0)
+
 
 
 # ------------------------
 # Packet sender
 # ------------------------
-def Packet_Sender(Target_IP, Target_Mac, Spoofip, SpoofMAC, stop, interface):
-    while str(stop).split()[3] == "unset>":
-        try:
-            ARP_PacketSpoofer(Target_IP, Target_Mac, Spoofip, interface)
-            ARP_PacketSpoofer(Spoofip, SpoofMAC, Target_IP, interface)
+def Packet_Sender(Target_IP, Target_Mac, Spoofip, SpoofMAC, Router_MAC, stop, reset_arp=False):
+    if reset_arp is False:
+        while str(stop).split()[3] == "unset>":
+            try:
+                ARP_PacketSpoofer(Target_IP, Target_Mac, Spoofip)
+                ARP_PacketSpoofer(Spoofip, SpoofMAC, Target_IP)
+                time.sleep(2)
+            except:
+                break
+    if reset_arp is True:
+        for l in range(1,3):
+            ARP_PacketSpoofer(Target_IP, Target_Mac, Spoofip, Router_MAC)
+            ARP_PacketSpoofer(Spoofip, SpoofMAC, Target_IP, Router_MAC)
             time.sleep(2)
-        except:
-            break
 
 
 # ------------------------
@@ -382,7 +420,7 @@ def conncurent(stop, offset=0):
     # Configurable parameters
     # --------------------------------------------
     cya_ip = 20  # Seconds until removed connection marked as left_session
-    stuck_timeout = 40  # Seconds until stuck IPs are purged
+    stuck_timeout = 12  # Seconds until stuck IPs are purged
     check_delay = 8  # Snapshot interval
     min_pps = 0.25  # PPS threshold for activity
     max_unstable_hits = 2  # Consecutive low PPS counts before disconnect
@@ -435,8 +473,9 @@ def conncurent(stop, offset=0):
                 count_before = before_data.get("packets", 0)
                 count_after = after_items.get(conn, {}).get("packets", 0)
                 pps = max((count_after - count_before) / check_delay, 0.0)
-
+                # --------------
                 # PPS averaging
+                # --------------
                 dq = pps_history.setdefault(conn, deque(maxlen=pps_window_len))
                 dq.append(pps)
                 pps_avg = sum(dq) / len(dq)
@@ -444,10 +483,16 @@ def conncurent(stop, offset=0):
                 concurrent_connection.setdefault(conn, {})
                 concurrent_connection[conn]["pps"] = round(pps, 2)
                 concurrent_connection[conn]["pps_avg"] = round(pps_avg, 2)
-
+                # --------------------------
                 # Active → update last_seen
+                # ---------------------------
                 if pps_avg > min_pps:
                     last_seen[conn] = current
+                elif conn not in last_seen:
+                    # ------------------------------------------------------
+                    # Initialize last_seen for IPs that never became active
+                    # -------------------------------------------------------
+                    last_seen[conn] = start_cycle
 
                 # ---------------------------
                 # NEW → CONNECTED
@@ -581,8 +626,13 @@ def sniffing(Target_IP, localhosts, game_choice, interface, console_port):
 # -------------------
 
 
-def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, port, mobile):
+def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, interface, port, mobile):
     global arp_thread
+    with open("puller.settings", "r") as f:
+        for line in f.readlines():
+            settings_name, setting = line.split(" ")
+            settings[settings_name.strip()] = setting.strip()
+    Allow_ipv4_fowarding(1, interface)
     choice = input("1. (Peer 2 Peer)\n2. (Servers)\n3. (Sniff All)\nChoice (1-3): ")
 
     def choose():
@@ -603,12 +653,12 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, po
                                       daemon=True)
     conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=True)
     conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=True)
-    flask_thread = threading.Thread(target=start_site, daemon=True)
+
     if Target_MAC is not None:
         import mobile as mobile_script
         mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP), daemon=True)
         arp_thread = threading.Thread(target=Packet_Sender,
-                                      args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, stop_event, interface),
+                                      args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, stop_event),
                                       daemon=True)
         arp_thread.start()
         if mobile == "yes":
@@ -617,25 +667,26 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, local, interface, po
     sniffer_thread.start()
     conn_thread.start()
     conn_thread2.start()
-    flask_thread.start()
+    start_site()
+    print("\n[INFO] KeyboardInterrupt received — shutting down...")
 
-    try:
-        while not stop_event.is_set():
-            time.sleep(0.5)
-    except KeyboardInterrupt:
-        print("\n[INFO] KeyboardInterrupt received — shutting down...")
-    finally:
-        # ------------------------------------------
-        # signal threads that listen to stop_event
-        # ------------------------------------------
-        stop_event.set()
+
+
+
+
+    Allow_ipv4_fowarding(0, interface)
+    stop_event.set()
+    print("======================\n\nResettings connections to your console\nPlease Be Patient should take about 6 seconds\n\n======================")
+    Packet_Sender(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, None, reset_arp=True)
+    print("======================\n\nDONE Please Close The Terminal\n\n======================")
 
     if Target_MAC is not None:
         arp_thread.join()
+    if settings["mobile"] == "yes":
+        mobile_foward_thread.join()
     sniffer_thread.join()
     conn_thread.join()
     conn_thread2.join()
-    flask_thread.join()
 
 
 
