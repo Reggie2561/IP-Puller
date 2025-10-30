@@ -174,7 +174,14 @@ def main():
         Spoof_MAC = ip_macs[Spoof_IP]
 
         del pick
-    elif sniffing_option == "1" and settings["console"] != "null":
+
+
+    if settings["console_port"] == "null":
+        Console_port = input("Enters Console Internal Port: ")
+    else:
+        Console_port = settings["console_port"]
+
+    if sniffing_option == "1" and settings["console"] != "null":
         ip = settings["console"]
 
         Target_IP = ip
@@ -197,10 +204,7 @@ def main():
     elif os.name == "posix":
         os.system("clear")
 
-    if settings["console_port"] == "null":
-        Console_port = input("Enters Console Internal Port: ")
-    else:
-        Console_port = settings["console_port"]
+
 
     puller.startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Router_MAC, list(sorted_ips), interface, Console_port, settings["mobile"])
 

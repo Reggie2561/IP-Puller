@@ -13,6 +13,8 @@ import Store
 from datetime import datetime
 from flask import Flask, render_template_string, jsonify, request
 import windows
+
+
 # Shared global data
 target = []
 invalid_local_hosts = []
@@ -104,7 +106,6 @@ def update_ips():
         "concurrent": len(captured_ips),
         "connected": len(connected),
         "removed": len(removed),
-        "disconnected": len(disconnected),
         "new_connection": len(new_connection),
         "left_players": len(left_session),
     }
@@ -656,7 +657,7 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, 
 
     if Target_MAC is not None:
         import mobile as mobile_script
-        mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP), daemon=True)
+        mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP, 2, 8), daemon=True)
         arp_thread = threading.Thread(target=Packet_Sender,
                                       args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, stop_event),
                                       daemon=True)
@@ -687,4 +688,6 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, 
     sniffer_thread.join()
     conn_thread.join()
     conn_thread2.join()
+
+
 

