@@ -1,5 +1,4 @@
-I am using this code on my own home network and my own device
-
+# bY USING this SOFTWARE you ackodege that you should only use this script on devices you own and on your own network 
 #!/usr/bin/env python3
 # fast_l2_redirect_sendmsg_batch.py
 # Implements memoryview sendmsg and recvmmsg/sendmmsg batching
@@ -191,3 +190,4 @@ def main(IFACE, VICTIM, GATEWAY):
         pass
     finally:
         s.close()
+
