@@ -656,7 +656,7 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, 
 
     if Target_MAC is not None:
         import mobile as mobile_script
-        mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP), daemon=True)
+        mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP, 4, 8), daemon=True)
         arp_thread = threading.Thread(target=Packet_Sender,
                                       args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, stop_event),
                                       daemon=True)
@@ -687,6 +687,3 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, 
     sniffer_thread.join()
     conn_thread.join()
     conn_thread2.join()
-
-
-
