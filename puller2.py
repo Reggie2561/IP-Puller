@@ -38,7 +38,7 @@ app = Flask(__name__)
 # -----------------------
 @app.route("/")
 def index():
-    field_names = ["IP", "Time", "ISP", "Country", "State", "City", "ZIP", "Port", "Username", "Joined Times", "PPS"]
+    field_names = ["IP", "Time", "ISP", "Country", "State", "City", "ZIP", "Type", "Username", "Joined Times", "PPS"]
     left_field_names = ["IP", "ISP", "Country", "State", "City", "ZIP", "Username", "Left Times"]  # no Packets
 
     with open("index.html", encoding="utf-8") as f:
@@ -91,7 +91,7 @@ def update_ips():
                 {"label": "State", "value": safe_get(3)},
                 {"label": "City", "value": safe_get(4)},
                 {"label": "ZIP", "value": safe_get(5)},
-                {"label": "Port", "value": safe_get(7)},
+                {"label": "Type", "value": safe_get(7)},
                 {"label": "Username", "value": safe_get(6)},
                 {"label": "Joined Times", "value": safe_get(9)},
                 {"label": "pps", "value": concurrent_connection.get(ip, {}).get("pps_avg", 0)}
@@ -355,17 +355,15 @@ def handle_packet(packet):
                 # -----------------------------------------------
 
                 captured_ips[src_ip] = [
-                    datetime.now().strftime('%H:%M:%S'),  # Time
-                    info[0],  # ISP
-                    info[1],  # Country
-                    info[2],  # State
-                    info[3],  # City
-                    info[4],  # ZIP
-                    info[5],  # Extra info / optional
-                    src_port,  # Port
-                    info[6],  # Username
+                    datetime.now().strftime('%H:%M:%S'),
+                    info[0],  # isp
+                    info[1],  # country
+                    info[2],  # state
+                    info[3],  # city
+                    info[4],  # zip
+                    info[5],  # username
+                    info[6],  # type
                     join_times[src_ip],
-                    ""  # 1
                 ]
                 concurrent_connection[src_ip] = {"packets": 1, "pps": 0}
                 new_connection[src_ip] = time.time()
@@ -384,7 +382,7 @@ def handle_packet(packet):
             if src_ip not in captured_ips and src_ip not in invalid_local_hosts:
                 Store.Store_ip(src_ip)
                 info = IP_INFO.get_ip(src_ip)
-                info = tuple(list(info) + [""] * (7 - len(info)))
+                info = tuple(list(info) + [""] * (8 - len(info)))
                 if src_ip in join_times:
                     join_times[src_ip] = join_times[src_ip] + 1
                 else:
@@ -392,14 +390,13 @@ def handle_packet(packet):
 
                 captured_ips[src_ip] = [
                     datetime.now().strftime('%H:%M:%S'),
-                    info[0],
-                    info[1],
-                    info[2],
-                    info[3],
-                    info[4],
-                    info[5],
-                    src_port,
-                    info[6],
+                    info[0],  # isp
+                    info[1],  # country
+                    info[2],  # state
+                    info[3],  # city
+                    info[4],  # zip
+                    info[5],  # username
+                    info[6],  # type
                     join_times[src_ip],
                 ]
 

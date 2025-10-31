@@ -25,19 +25,28 @@ def get_username(ip=None, username=None, mode="ip"):
 
 def get_ip(ip):
     try:
-        ip_info = requests.get(f"http://ip-api.com/json/{ip}").json()
+        ip_info = requests.get(f"http://ip-api.com/json/{ip}?fields=message,country,countryCode,regionName,city,zip,isp,org,mobile,proxy,hosting,query").json()
 
         isp = ip_info["isp"]
         country = ip_info["countryCode"]
         state = ip_info["regionName"]
         city = ip_info["city"]
         zip = ip_info["zip"]
+
+        if str(ip_info["proxy"]) == "True":
+            type = "VPN"
+        elif str(ip_info["hosting"]) == "True":
+            type = "Hosting"
+        elif str(ip_info["mobile"]) == "True":
+            type = "Mobile"
+        else:
+            type = "Residential"
+
         username = get_username(ip, mode="ip")
 
         time.sleep(0.25)
-        return isp, country, state, city, zip, username
+        return isp, country, state, city, zip, username, type
     except Exception as e:
         f = "FAILED"
         username = get_username(ip)
-        return f, f, f, f, f, username
-
+        return f, f, f, f, f, username, f
