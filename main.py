@@ -69,9 +69,10 @@ def main_page():
   |  |--'   |--'.  . | | .-. .--.
   |  |      |   |  | | |(.-' |   
 --'--'      '   `--`-`-`-`--''  
+======================================
   """
     print(art)
-    pick = input("1. Ease of Use Settings\n2. Discord Server\npress enter to continue\nChoice (1-2): ")
+    pick = input("1. Ease of Use Settings\n2. Discord Server\npress ENTER to continue\nChoice (1-2): ")
 
     if str(pick) == "1":
 
@@ -172,6 +173,7 @@ def main():
         Target_MAC = ip_macs[Target_IP]
         Spoof_IP = sorted_ips[0]
         Spoof_MAC = ip_macs[Spoof_IP]
+        Router_MAC = ip_macs[Spoof_IP]
 
         del pick
 
@@ -192,7 +194,7 @@ def main():
     elif sniffing_option == "2":
         Target_IP = None
         Target_MAC = None
-
+        Spoof_IP = None
         Spoof_MAC = None
         Router_MAC = None
 

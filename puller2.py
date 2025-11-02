@@ -13,6 +13,7 @@ import Store
 from datetime import datetime
 from flask import Flask, render_template_string, jsonify, request
 import windows
+from ping import ping
 
 
 # Shared global data
@@ -91,7 +92,7 @@ def update_ips():
                 {"label": "State", "value": safe_get(3)},
                 {"label": "City", "value": safe_get(4)},
                 {"label": "ZIP", "value": safe_get(5)},
-                {"label": "Type", "value": safe_get(7)},
+                {"label": "Type", "value": safe_get(9)}, #7
                 {"label": "Username", "value": safe_get(6)},
                 {"label": "Joined Times", "value": safe_get(8)},
                 {"label": "pps", "value": concurrent_connection.get(ip, {}).get("pps_avg", 0)}
@@ -156,35 +157,9 @@ def ReggiesMultiTool():
 # ----------------------
 @app.route('/Ping+<target>', methods=['POST'])
 def ping_target(target):
-    # ------------------------------------------------------------------------------
-    # `target` is already percent-decoded by Flask
-    # If client used '+' in the path it will remain '+' here.
-    # If you want to treat '+' like a space (as in form-encoding), use unquote_plus:
-    # -------------------------------------------------------------------------------
-    target_normalized = urllib.parse.unquote_plus(target)
-    # --------------------------------------------------------------------
-    # Basic validation (example: allow only alphanumerics, dots, hyphens)
-    # --------------------------------------------------------------------
-    import re
-    if not re.fullmatch(r'[A-Za-z0-9.\-]+', target_normalized):
-        return jsonify({"error": "invalid target"}), 400
-
-    try:
-        if os.name == "posix":
-            cmd = ["ping", "-c", "4", target_normalized]  # linux example; windows differs
-            with os.popen(f"{cmd[0]} {cmd[3]} {cmd[1]} {cmd[2]}") as stdout:
-                output = stdout.read()
-        elif os.name == "nt":
-            cmd = ["ping", target_normalized]
-            with os.popen(f"{cmd[0]} {cmd[1]}") as stdout:
-                output = stdout.read()
-
-        return jsonify({
-            "target": target_normalized,
-            "results": output,
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    ip = urllib.parse.unquote_plus(target)
+    results = ping(ip)
+    return jsonify({"text": results})
 
 
 @app.route('/Conn_type+<target>', methods=['POST'])
@@ -364,6 +339,7 @@ def handle_packet(packet):
                     info[5],  # username
                     info[6],  # type
                     join_times[src_ip],
+                    src_port
                 ]
                 concurrent_connection[src_ip] = {"packets": 1, "pps": 0}
                 new_connection[src_ip] = time.time()
@@ -398,6 +374,7 @@ def handle_packet(packet):
                     info[5],  # username
                     info[6],  # type
                     join_times[src_ip],
+                    src_port
                 ]
 
                 concurrent_connection[src_ip] = {"packets": 1, "pps": 0}
@@ -413,17 +390,18 @@ def handle_packet(packet):
 # -----------------------
 # Connection tracking
 # -----------------------
-def conncurent(stop, offset=0):
+def conncurent(stop,offset=0, server=False):
     # --------------------------------------------
     # Configurable parameters
     # --------------------------------------------
     cya_ip = 20  # Seconds until removed connection marked as left_session
-    stuck_timeout = 12  # Seconds until stuck IPs are purged
+    stuck_timeout = 30  # Seconds until stuck IPs are purged
     check_delay = 8  # Snapshot interval
     min_pps = 0.25  # PPS threshold for activity
     max_unstable_hits = 2  # Consecutive low PPS counts before disconnect
     pps_window_len = 3  # Sliding window size for PPS average
     max_left_session = 30  # Max entries stored in left_session
+    server_min = 50 # If Server is chosen a higher pps is usual so if we are looking for servers we only want servers output
 
     # --------------------------------------------
     # Globals assumed from outer scope
@@ -495,8 +473,12 @@ def conncurent(stop, offset=0):
                 # ---------------------------
                 # NEW → CONNECTED
                 # ---------------------------
-                if conn not in connected and pps_avg >= min_pps:
-                    connected.append(conn)
+                if not server:
+                    if conn not in connected and pps_avg >= min_pps:
+                        connected.append(conn)
+                else:
+                    if conn not in connected and pps_avg >= server_min:
+                        connected.append(conn)
 
                 # ---------------------------
                 # Unstable handling
@@ -608,6 +590,8 @@ def sniffing(Target_IP, localhosts, game_choice, interface, console_port):
         "1.5": f"udp port {console_port} and {filter_nets}",
         "2.1": f"udp and src portrange 49152-65535 and not net 192.168.0.0/16 and {filter_nets}",
         "2.2": f"(udp and ((src port 2700 or src port 2500 or src port 3600 or src port 3800 or src port 2400 or (src port >= 61101 and src port <= 63614))) and ({filter_nets}))",
+        "2.3": f"udp port {console_port} and {filter_nets}",
+        "2.4": f"udp port {console_port} and {filter_nets}",
         "3.1": f"{filter_nets}"
     }
 
@@ -636,9 +620,9 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, 
     def choose():
         if choice == "1":
             game = input(
-                "1. Grand Theft Auto V\n2. Grand Theft Auto VI\n3. Call Of Duty 3\n4. Monopoly\n5. Minecraft (Private Worlds)\nPick a Choice (1-4): ")
+                "Peer To Peer List\n===================\n1. Grand Theft Auto V\n2. Grand Theft Auto VI\n3. Call Of Duty 3\n4. Monopoly\n5. Minecraft (Private Worlds)\nPick a Choice (1-5): ")
         elif choice == "2":
-            game = input("1. Roblox (Servers Only)\n2. Gang Beast (Servers Only)\nChoose (1-2): ")
+            game = input("SERVER LIST \n================\n1. Roblox \n2. Gang Beast \n3. Call of Duty (WarZone 2.0)\n4. Rainbow Six Siege\nChoose (1-3): ")
         elif choice == "3":
             return "3.1"
 
@@ -649,9 +633,12 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, 
 
     sniffer_thread = threading.Thread(target=sniffing, args=(Target_IP, local, game_choice, interface, port),
                                       daemon=True)
-    conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=True)
-    conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=True)
-
+    if choice == "2":
+        conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0, True), daemon=True)
+        conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4, True), daemon=True)
+    else:
+        conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=True)
+        conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=True)
     if Target_MAC is not None:
         import mobile as mobile_script
         mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP, 2, 8), daemon=True)
@@ -685,7 +672,5 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, 
     sniffer_thread.join()
     conn_thread.join()
     conn_thread2.join()
-
-
 
 

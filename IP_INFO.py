@@ -40,7 +40,7 @@ def get_ip(ip):
         elif str(ip_info["mobile"]) == "True":
             type = "Mobile"
         else:
-            type = "Residential"
+            type = "Home"
 
         username = get_username(ip, mode="ip")
 
