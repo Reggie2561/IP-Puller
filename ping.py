@@ -1,4 +1,4 @@
-"""Ping an IP address """
+"""Ping an IP address and return raw RTT values for each ping."""
 import time
 import requests
 from typing import Literal
@@ -31,7 +31,7 @@ def ping(target_ip: str) -> str:
     def get_ping_results(request_id: str, delay: int = 10) -> PingCheckResults:
         for i in range(delay, 0, -1):
             time.sleep(1)
-        
+        print(' ' * 50, end='\r')
 
         response = s.get(f'{CHECK_HOST_API}/check-result/{request_id}', headers={'Accept': 'application/json'})
         response.raise_for_status()
@@ -77,10 +77,9 @@ def ping(target_ip: str) -> str:
                         this_rtt_values.append('timeout')
 
         if this_rtt_values:
-            rtts_formatted = ' | '.join(str(v) for v in this_rtt_values)
-            ping_results += f"{country:20} {city:20} {successful_pings}/4       {rtts_formatted}\n"
+            rtts_formatted = ' ms | '.join(str(v) for v in this_rtt_values)
+            ping_results += f"{"="*50}\n{country:5} {city:5} {successful_pings}/4\n{rtts_formatted} ms\n"
         else:
-            ping_results += f"{country:20} {city:20} 0/4         {message or 'timeout'}\n"
+            ping_results += f"{"="*50}\n{country} {city} 0/4\n{message or 'timeout'}\n"
 
     return ping_results
-

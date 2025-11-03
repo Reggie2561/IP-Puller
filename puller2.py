@@ -31,6 +31,7 @@ join_times = {}
 pps_history = {}
 unstable = {}
 settings = {}
+first_joined = {}
 app = Flask(__name__)
 
 
@@ -39,8 +40,8 @@ app = Flask(__name__)
 # -----------------------
 @app.route("/")
 def index():
-    field_names = ["IP", "Time", "ISP", "Country", "State", "City", "ZIP", "Type", "Username", "Joined Times", "PPS"]
-    left_field_names = ["IP", "ISP", "Country", "State", "City", "ZIP", "Username", "Left Times"]  # no Packets
+    field_names = ["IP", "Time\nJoined", "ISP", "Country", "State", "City", "ZIP", "Type", "Username", "Joined Times", "PPS"]
+    left_field_names = ["IP", "Time\nLeft", "ISP", "Country", "State", "City", "ZIP", "Username", "Left Times"]
 
     with open("index.html", encoding="utf-8") as f:
         html = f.read()
@@ -92,7 +93,7 @@ def update_ips():
                 {"label": "State", "value": safe_get(3)},
                 {"label": "City", "value": safe_get(4)},
                 {"label": "ZIP", "value": safe_get(5)},
-                {"label": "Type", "value": safe_get(7)}, #7
+                {"label": "Type", "value": safe_get(7)}, #9 for port
                 {"label": "Username", "value": safe_get(6)},
                 {"label": "Joined Times", "value": safe_get(8)},
                 {"label": "pps", "value": concurrent_connection.get(ip, {}).get("pps_avg", 0)}
@@ -129,6 +130,7 @@ def update_left_ips():
             "ip": ip,
             "fields": [
                 {"label": "IP", "value": ip},
+                {"label": "Time\nLeft", "value": safe_get(0)},
                 {"label": "ISP", "value": safe_get(1)},
                 {"label": "Country", "value": safe_get(2)},
                 {"label": "State", "value": safe_get(3)},
@@ -139,6 +141,7 @@ def update_left_ips():
             ]
         }
         result.append(row)
+    result.reverse()
     return jsonify({"rows": result})
 
 
@@ -183,7 +186,7 @@ def nmap_target(target):
     session.get("https://hackertarget.com/nmap-online-port-scanner/")
     data = session.post('https://hackertarget.com/nmap-online-port-scanner/', data={"theinput": f"{ip}",
                                                                                     "thetest": "nmap",
-                                                                                    "name_of_nonce_field": "93b87b0cc8",
+                                                                                    "name_of_nonce_field": "admin",
                                                                                     "_wp_http_referer": "/nmap-online-port-scanner/"
                                                                                     })
 
@@ -345,7 +348,7 @@ def handle_packet(packet):
                 new_connection[src_ip] = time.time()
             else:
                 concurrent_connection[src_ip]["packets"] += 1
-                captured_ips[src_ip][0] = datetime.now().strftime('%H:%M:%S')
+
 
         elif IP in packet and packet.haslayer("TCP"):
             src_ip = packet[IP].src
@@ -513,7 +516,7 @@ def conncurent(stop,offset=0, server=False):
                     info = captured_ips.get(conn, [])
                     if conn not in left_session.keys():
                         left_session[conn] = [
-                            info[0] if len(info) > 0 else "",
+                            datetime.now().strftime('%H:%M:%S'),
                             info[1] if len(info) > 1 else "",
                             info[2] if len(info) > 2 else "",
                             info[3] if len(info) > 3 else "",
@@ -525,6 +528,7 @@ def conncurent(stop,offset=0, server=False):
                         ]
                     else:
                         left_session[conn][8] += 1
+                        left_session[conn][0] = datetime.now().strftime('%H:%M:%S')
 
                     # Cleanup connection data
                     captured_ips.pop(conn, None)
@@ -672,6 +676,5 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, 
     sniffer_thread.join()
     conn_thread.join()
     conn_thread2.join()
-
 
 
