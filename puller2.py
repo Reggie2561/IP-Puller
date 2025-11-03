@@ -92,7 +92,7 @@ def update_ips():
                 {"label": "State", "value": safe_get(3)},
                 {"label": "City", "value": safe_get(4)},
                 {"label": "ZIP", "value": safe_get(5)},
-                {"label": "Type", "value": safe_get(9)}, #7
+                {"label": "Type", "value": safe_get(7)}, #7
                 {"label": "Username", "value": safe_get(6)},
                 {"label": "Joined Times", "value": safe_get(8)},
                 {"label": "pps", "value": concurrent_connection.get(ip, {}).get("pps_avg", 0)}
@@ -672,5 +672,6 @@ def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, 
     sniffer_thread.join()
     conn_thread.join()
     conn_thread2.join()
+
 
 
