@@ -1,5 +1,5 @@
-interface Wi-Fi
-subnet 10.0.0.0/24
-console 10.0.0.4
-console_port 50322
+interface null
+subnet null
+console null
+console_port null
 mobile no
