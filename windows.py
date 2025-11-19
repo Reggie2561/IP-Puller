@@ -61,9 +61,7 @@ def recieve_interface():
         if line.strip():
             parts = line.split()
             interface_name = " ".join(parts[3:])
-            count += 1
-            print(f"{count} :{interface_name}")
             interfaces.append(interface_name)
 
-    pick = input("Pick an interface: ")
-    return interfaces[int(pick)-1]
+
+    return interfaces

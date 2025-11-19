@@ -11,12 +11,17 @@ import scapy.all as scapy
 import IP_INFO
 import Store
 from datetime import datetime
-from flask import Flask, render_template_string, jsonify, request
+from flask import Flask, render_template_string, jsonify, request, render_template
+import settings as setting
+import networking
 import windows
 from ping import ping
+sniff_running = False
+sniff_thread = None
 
 
 # Shared global data
+stop_event = threading.Event()
 target = []
 invalid_local_hosts = []
 captured_ips = {}
@@ -31,7 +36,9 @@ join_times = {}
 pps_history = {}
 unstable = {}
 settings = {}
+needed_info = {}
 first_joined = {}
+filters = {}
 app = Flask(__name__)
 
 
@@ -40,13 +47,7 @@ app = Flask(__name__)
 # -----------------------
 @app.route("/")
 def index():
-    field_names = ["IP", "Time\nJoined", "ISP", "Country", "State", "City", "ZIP", "Type", "Username", "Joined Times", "PPS"]
-    left_field_names = ["IP", "Time\nLeft", "ISP", "Country", "State", "City", "ZIP", "Username", "Left Times"]
-
-    with open("index.html", encoding="utf-8") as f:
-        html = f.read()
-
-    return render_template_string(html, field_names=field_names, left_field_names=left_field_names)
+    return render_template("index.html")
 
 
 # -----------------------
@@ -148,11 +149,21 @@ def update_left_ips():
 # ----------------------
 # multitool front end
 # ----------------------
+
 @app.route("/ReggiesMultiTool", methods=["GET"])
 def ReggiesMultiTool():
-    with open("multitool.html", "r", encoding="utf-8") as f:
-        html = f.read()
-    return render_template_string(html)
+    return render_template('multitool.html')
+
+@app.route("/LiveView", methods=["GET"])
+def LiveView():
+    field_names = ["IP", "Time\nJoined", "ISP", "Country", "State", "City", "ZIP", "Type", "Username", "Joined Times", "PPS"]
+    left_field_names = ["IP", "Time\nLeft", "ISP", "Country", "State", "City", "ZIP", "Username", "Left Times"]
+
+    return render_template('LiveView.html', field_names=field_names, left_field_names=left_field_names)
+
+@app.route("/settings", methods=["GET"])
+def settings_view():
+    return render_template('index.html')
 
 
 # ----------------------
@@ -221,94 +232,124 @@ def username_lookup_target(username):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/Traceroute+<ip>', methods=['POST'])
-def Traceroute(ip):
-    # -------------------------
-    # Normalize IP input
-    # -------------------------
-    ip = urllib.parse.unquote_plus(ip)
-
-    try:
-        data = requests.post("https://traceroute-online.com/query", data={
-            "target": ip,
-            "query_type": "mtr"
-        })
-        return jsonify({"Results": data.text})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 # -----------------------
-# Start Flask
+# Start Flask and Contains Core inner Workings of the HTML
 # -----------------------
+@app.route("/get_local_hosts", methods=["POST"])
+def get_local_hosts():
+    r = request.get_json()
+    router = r["router"] ## should come in a string 192.168.1.1
+
+    return jsonify(networking.RecieveHosts(str(router).strip()))
+
+@app.route("/get_interface", methods=["POST"])
+def get_interface():
+    interfaces = networking.recieve_interface()
+    return jsonify(interfaces)
+
+@app.route("/save_settings", methods=["POST"])
+def save_settings():
+    global needed_info, settings
+    data = request.get_json()
+    interface = str(data["interface"])
+    subnet = str(data["subnet"])
+    console = str(data["console"])
+    port = str(data["port"])
+    mobile = str(data["mobile"])
+
+      ## should come in a string 192.168.1.1
+    parts = subnet.split(".")
+    subnet = ".".join(parts[:3]) + ".0/24"
+
+    setting.update(interface, subnet, console, port, mobile)
+    settings.update({"interface": interface, "subnet": subnet, "console": console, "port": port, "mobile": mobile})
+    print(settings)
+    return ""
+
+@app.route("/sniff/start", methods=["POST"])
+def sniff_start():
+    global sniff_running, sniff_thread
+
+    Router_IP = str(settings["subnet"]).replace("0/24", "1")
+    Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Router_IP, local = setting.Recieve_INFO(Router_IP, settings["console"])
+    needed_info.update({"Target_IP": Target_IP, "Target_MAC": Target_MAC, "Spoof_IP": Spoof_IP, "Spoof_MAC": Spoof_MAC, "Routers_IP": Router_IP, "local": local, "interface": settings["interface"]})
+    if sniff_running:
+        return "running", 204
+    data = request.get_json()
+    game_choice = data.get("game_choice", "3.1")
+    interface = settings["interface"]
+
+    print(game_choice, interface)
+
+    setup_sniffer(Target_IP, local, settings["console_port"])
+    sniff_running = True
+    sniff_thread = threading.Thread(
+        target=sniffing,
+        args=(game_choice, interface),
+        daemon=False,
+    )
+    sniff_thread.start()
+
+    if str(game_choice).startswith("2"):
+        conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0, True), daemon=False)
+        conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4, True), daemon=False)
+    else:
+        conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=False)
+        conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=False)
+
+    networking.Allow_ipv4_fowarding(1, interface)
+    if Target_IP is not None:
+        import mobile as mobile_script
+
+        if settings["mobile"] == "yes":
+            mobile_foward_thread = threading.Thread(target=mobile_script.ipv4_foward, args=(Spoof_IP, Target_IP, Spoof_IP), daemon=False)
+
+            mobile_foward_thread.start()
+    arp_thread = threading.Thread(target=networking.Packet_Sender,
+                                  args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Spoof_MAC, stop_event),
+                                  daemon=False)
+    arp_thread.start()
+    conn_thread.start()
+    conn_thread2.start()
+
+    print("started sniffing")
+    return "Started", 204
+
+@app.route("/sniff/stop", methods=["POST"])
+def sniff_stop():
+    global sniff_running
+    sniff_running = False
+    stop_event.set()
+
+
+
+    networking.Packet_Sender(needed_info["Target_IP"], needed_info["Target_MAC"], needed_info["Spoof_IP"], needed_info["Spoof_MAC"], needed_info["Routers_IP"], None, reset_arp=True)
+    time.sleep(4)
+    networking.Allow_ipv4_fowarding(0, needed_info["interface"])
+    captured_ips.clear()
+    connected.clear()
+    removed.clear()
+    new_connection.clear()
+    last_seen.clear()
+    pps_history.clear()
+    unstable.clear()
+    return "", 204
+
+
+
 def start_site():
     app.run(host="0.0.0.0", port=1234, debug=True, use_reloader=False)
 
-# ------------------------
-# Traffic Fowarding
-# ------------------------
-def Allow_ipv4_fowarding(status, interface):
-    ##0 off
-    ##1 on
-    if os.name == "posix":
-        if settings["mobile"] == "no":
-            with os.popen("sudo sysctl net.ipv4.ip_forward") as status_:
-                if status_.read().strip() == "net.ipv4.ip_forward = 0":
 
-                    if status == 1:
-                        os.system("sudo sysctl -w net.ipv4.ip_forward=1")
-            if status == 0:
-                os.system("sudo sysctl -w net.ipv4.ip_forward=0")
-
-            del status
-            del status_
-    elif os.name == "nt":
-        if status == 1:
-            windows.enable_ipv4_forwarding_win(interface, 1)
-        if status == 0:
-            windows.enable_ipv4_forwarding_win(interface, 0)
-
-
-# -----------------------
-# packet spoofer
-# -----------------------
-def ARP_PacketSpoofer(tip, tmac, spoofip, Router=None):
-    if Router is None:
-        pkt = scapy.ARP(op=2, pdst=tip, hwdst=tmac, psrc=spoofip)
-        scapy.send(pkt, verbose=0)
-        scapy.send(pkt, verbose=0)
-        del pkt
-    else:
-        pkt = scapy.ARP(op=2, pdst=tip, hwdst=tmac, psrc=spoofip, hwsrc=Router)
-        scapy.send(pkt, verbose=0)
-        scapy.send(pkt, verbose=0)
-
-
-
-# ------------------------
-# Packet sender
-# ------------------------
-def Packet_Sender(Target_IP, Target_Mac, Spoofip, SpoofMAC, Router_MAC, stop, reset_arp=False):
-    if reset_arp is False:
-        while str(stop).split()[3] == "unset>":
-            try:
-                ARP_PacketSpoofer(Target_IP, Target_Mac, Spoofip)
-                ARP_PacketSpoofer(Spoofip, SpoofMAC, Target_IP)
-                time.sleep(2)
-            except:
-                break
-    if reset_arp is True:
-        for l in range(1,3):
-            ARP_PacketSpoofer(Target_IP, Target_Mac, Spoofip, Router_MAC)
-            ARP_PacketSpoofer(Spoofip, SpoofMAC, Target_IP, Router_MAC)
-            time.sleep(2)
-
-
+def load_info():
+    global needed_info
+    return needed_info
 # ------------------------
 # Packet handling
 # ------------------------
 def handle_packet(packet):
     try:
+
         if IP in packet and UDP in packet:
             src_ip = packet[IP].src
             dst_ip = packet[IP].dst
@@ -348,7 +389,6 @@ def handle_packet(packet):
                 new_connection[src_ip] = time.time()
             else:
                 concurrent_connection[src_ip]["packets"] += 1
-
 
         elif IP in packet and packet.haslayer("TCP"):
             src_ip = packet[IP].src
@@ -412,6 +452,7 @@ def conncurent(stop,offset=0, server=False):
     global concurrent_connection, captured_ips, pps_history
     global last_seen, connected, unstable, disconnected
     global removed, left_session, new_connection
+    global sniff_running
 
     # --------------------------------------------
     # Thread-safe guard for shared dicts
@@ -428,6 +469,8 @@ def conncurent(stop,offset=0, server=False):
     # Connection tracking loop
     # --------------------------------------------
     while not stop.is_set():
+        if not sniff_running:
+            break
         start_cycle = time.time()
         try:
             # Snapshot before
@@ -460,8 +503,8 @@ def conncurent(stop,offset=0, server=False):
                 pps_avg = sum(dq) / len(dq)
 
                 concurrent_connection.setdefault(conn, {})
-                concurrent_connection[conn]["pps"] = round(pps, 2)
-                concurrent_connection[conn]["pps_avg"] = round(pps_avg, 2)
+                concurrent_connection[conn]["pps"] = round(pps)
+                concurrent_connection[conn]["pps_avg"] = round(pps_avg)
                 # --------------------------
                 # Active → update last_seen
                 # ---------------------------
@@ -571,21 +614,21 @@ def conncurent(stop,offset=0, server=False):
 # -----------------
 # Sniffing wrapper
 # -----------------
-def sniffing(Target_IP, localhosts, game_choice, interface, console_port):
+def setup_sniffer(Target_IP, localhosts, console_port):
+    target.clear()
     target.append(Target_IP)
     Store.reset_ip()
 
     # Remove Target_IP properly
     if Target_IP in localhosts:
         localhosts.remove(Target_IP)
-
     filter_nets = ""
     for ip in localhosts:
         if filter_nets == "":
             filter_nets += f"not net {ip}/32 "
         else:
             filter_nets += f"and not net {ip}/32 "
-
+    global filters
     filters = {
         "1.1": f"udp src port 6672 and not net 177.237.0.0/16 and not net 192.81.0.0/16 and not net 192.168.0.0/16 and {filter_nets}",
         "1.2": f"((udp src port {console_port}) or (udp src port 3074) or (udp src port 50306)) and ({filter_nets})",
@@ -599,82 +642,41 @@ def sniffing(Target_IP, localhosts, game_choice, interface, console_port):
         "3.1": f"{filter_nets}"
     }
 
+
+def sniffing(game_choice, interface):
+    global sniff_running, filters
+    sniff_running = True
+
+    if not sniff_running:
+        return  # sniff stops if sniff_running becomes False
+
     sniff(
         iface=interface,
         filter=filters.get(game_choice, ""),
         prn=handle_packet,
-        store=0
+        store=0,
+        stop_filter=lambda pkt: not sniff_running
     )
 
 
 # -------------------
 # Start all threads
 # -------------------
+def startwebsite():
 
-
-def startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, local, interface, port, mobile):
-    global arp_thread
     with open("puller.settings", "r") as f:
         for line in f.readlines():
             settings_name, setting = line.split(" ")
             settings[settings_name.strip()] = setting.strip()
-    Allow_ipv4_fowarding(1, interface)
-    choice = input("1. (Peer 2 Peer)\n2. (Servers)\n3. (Sniff All)\nChoice (1-3): ")
 
-    def choose():
-        if choice == "1":
-            game = input(
-                "Peer To Peer List\n===================\n1. Grand Theft Auto V\n2. Grand Theft Auto VI\n3. Call Of Duty 3\n4. Monopoly\n5. Minecraft (Private Worlds)\nPick a Choice (1-5): ")
-        elif choice == "2":
-            game = input("SERVER LIST \n================\n1. Roblox \n2. Gang Beast \n3. Call of Duty (WarZone 2.0)\n4. Rainbow Six Siege\nChoose (1-3): ")
-        elif choice == "3":
-            return "3.1"
-
-        return f"{choice}.{game}"
-
-    game_choice = choose()
-    stop_event = threading.Event()
-
-    sniffer_thread = threading.Thread(target=sniffing, args=(Target_IP, local, game_choice, interface, port),
-                                      daemon=True)
-    if choice == "2":
-        conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0, True), daemon=True)
-        conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4, True), daemon=True)
-    else:
-        conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=True)
-        conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=True)
-    if Target_MAC is not None:
-        import mobile as mobile_script
-        mobile_foward_thread = threading.Thread(target=mobile_script.main, args=(interface, Target_IP, Spoof_IP, 2, 8), daemon=True)
-        arp_thread = threading.Thread(target=Packet_Sender,
-                                      args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, stop_event),
-                                      daemon=True)
-        arp_thread.start()
-        if mobile == "yes":
-            mobile_foward_thread.start()
-
-    sniffer_thread.start()
-    conn_thread.start()
-    conn_thread2.start()
     start_site()
     print("\n[INFO] KeyboardInterrupt received — shutting down...")
 
 
-
-
-
-    Allow_ipv4_fowarding(0, interface)
     stop_event.set()
     print("======================\n\nResettings connections to your console\nPlease Be Patient should take about 6 seconds\n\n======================")
-    Packet_Sender(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Routers_MAC, None, reset_arp=True)
+
     print("======================\n\nDONE Please Close The Terminal\n\n======================")
 
-    if Target_MAC is not None:
-        arp_thread.join()
-    if settings["mobile"] == "yes":
-        mobile_foward_thread.join()
-    sniffer_thread.join()
-    conn_thread.join()
-    conn_thread2.join()
 
 

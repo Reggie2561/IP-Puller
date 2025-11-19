@@ -21,7 +21,7 @@ def get_username(ip=None, username=None, mode="ip"):
     if mode != "ip":
         return usernames
     else:
-        return "NOT FOUND"
+        return "N/A"
 
 def get_ip(ip):
     try:

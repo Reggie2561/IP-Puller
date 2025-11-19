@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Settings - Reggie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#0f172a">
+<style>
+body { font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; background: linear-gradient(to bottom, #0f172a 0vh, #1e293b 100vh); color: white; margin: 0; padding: 0; }
+.top-bar { position: fixed; top: 0; left: 0; right: 0; background: #111827; display: flex; align-items: center; justify-content: center; padding: 6px 10px; z-index: 1000; box-shadow: 0 2px 6px rgba(0,0,0,0.3); font-weight: 600; }
+.hamburger { position:absolute; left:10px; cursor:pointer; font-size:1.2rem; }
+#menu { display:none; position:fixed; top:36px; left:0; background:#111827; width:200px; z-index:1001; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+#menu a { display:block; padding:10px; color:white; text-decoration:none; }
+#menu a:hover { background: #1e40af; }
+.notification { position: fixed; top: 36px; left: 0; right: 0; background: #2563eb; color: white; text-align: center; padding: 6px; font-weight: 600; display: none; z-index: 999; }
+main { padding: 100px 20px 20px; display: flex; flex-direction: column; align-items: center; }
+h2 { font-size: 1.25rem; margin-bottom: 20px; color: #f1f5f9; }
+.field-btns { display: flex; flex-direction: column; gap: 15px; width: 320px; }
+.field-block { display: flex; flex-direction: column; gap: 6px; }
+.field-label { color: #cbd5e1; font-weight: 600; }
+.select-btn, .input-btn { padding: 8px 10px; border-radius: 6px; border: 1px solid #3b82f6; background: black; color: white; font-weight: 600; appearance: none; }
+.input-btn { outline: none; }
+.select-btn option { background: black; color: white; }
+button { margin-top: 20px; padding: 10px 14px; font-weight: 600; border-radius: 6px; background: #1e40af; color: white; border: none; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="hamburger" id="hamburger">☰</div>
+  Settings Panel
+</div>
+
+<div id="menu">
+  <a href="/LiveView">Live View</a>
+  <a href="/ReggiesMultiTool">Multitool</a>
+  <a href="/settings">Settings</a>
+</div>
+
+<div class="notification" id="notif">Scanning for local hosts...</div>
+
+<main>
+<h2>Network & Console Settings</h2>
+
+<div class="field-btns">
+
+  <div class="field-block">
+    <div class="field-label">Interface</div>
+    <select class="select-btn" id="interface"></select>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">Router IP</div>
+    <input class="input-btn" id="router_ip" placeholder="192.168.1.1">
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">Console</div>
+    <select class="select-btn" id="console" disabled></select>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">Console Port</div>
+    <input class="input-btn" id="console_port" placeholder="50322">
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">Mobile</div>
+    <select class="select-btn" id="mobile">
+      <option>no</option>
+      <option>yes</option>
+    </select>
+  </div>
+
+</div>
+
+<button id="save_btn">Save</button>
+
+</main>
+
+<script>
+// Hamburger menu toggle
+document.getElementById('hamburger').addEventListener('click', () => {
+  const menu = document.getElementById('menu');
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+});
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('menu');
+  const hamburger = document.getElementById('hamburger');
+  if (!menu.contains(e.target) && !hamburger.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
+// IPv4 validation
+function validIP(ip) {
+  return /^((10|172|192)\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.test(ip);
+}
+
+// Populate interface list
+fetch('/get_interface', { method: 'POST' })
+  .then(r => r.json())
+  .then(list => {
+    const el = document.getElementById('interface');
+    el.innerHTML = '';
+    list.forEach(item => {
+      const opt = document.createElement('option');
+      opt.textContent = item;
+      el.appendChild(opt);
+    });
+  });
+
+// Load console hosts after valid router IP
+document.getElementById('router_ip').addEventListener('blur', e => {
+  const router = e.target.value.trim();
+  const consoleSel = document.getElementById('console');
+  const notif = document.getElementById('notif');
+
+  if (!validIP(router)) {
+    consoleSel.innerHTML = '';
+    consoleSel.disabled = true;
+    notif.style.display = 'none';
+    return;
+  }
+
+  notif.style.display = 'block';
+  consoleSel.disabled = true;
+  consoleSel.innerHTML = '';
+
+  fetch('/get_local_hosts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ router })
+  })
+  .then(r => r.json())
+  .then(dict => {
+    const ips = Object.keys(dict).sort((a, b) => {
+      return a.split('.').reduce((acc, oct, i) => acc + parseInt(oct)*(256**(3-i)),0) -
+             b.split('.').reduce((acc, oct, i) => acc + parseInt(oct)*(256**(3-i)),0);
+    });
+
+    consoleSel.innerHTML = '';
+    ips.forEach(ip => {
+      const opt = document.createElement('option');
+      opt.textContent = ip;
+      consoleSel.appendChild(opt);
+    });
+    consoleSel.disabled = false;
+    notif.style.display = 'none';
+  })
+  .catch(err => {
+    console.error('Error fetching console hosts:', err);
+    consoleSel.innerHTML = '';
+    consoleSel.disabled = true;
+    notif.style.display = 'none';
+  });
+});
+
+// Save settings
+document.getElementById('save_btn').addEventListener('click', () => {
+  const interfaceVal = document.getElementById('interface').value;
+  const subnetVal = document.getElementById('router_ip').value;
+  const consoleVal = document.getElementById('console').value;
+  const portVal = document.getElementById('console_port').value;
+  const mobileVal = document.getElementById('mobile').value;
+
+  fetch('/save_settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      interface: interfaceVal,
+      subnet: subnetVal,
+      console: consoleVal,
+      port: portVal,
+      mobile: mobileVal
+    })
+  })
+  .then(r => { if(r.ok) alert('Settings saved successfully.'); else alert('Error saving settings.'); })
+  .catch(err => { console.error(err); alert('Error saving settings.'); });
+});
+</script>
+
+</body>
+</html>

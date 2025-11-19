@@ -2,8 +2,9 @@ import os
 import puller2 as puller
 import scapy.all as scapy
 import ipaddress
-import windows
+import networking
 import setup
+import settings
 
 setup.check()
 
@@ -20,42 +21,7 @@ with open("puller.settings", "r") as f:
 active_interface = []
 
 
-def recieve_interface():
-    if os.name == "posix":
-        cmd = "ip a | grep \"state UP\" | awk -F: '{print $2}' | tr -d ' '"
-        interfaces = os.popen(cmd).read()
-        interfaces = str(interfaces).split()
-        count = 0
-        for interface in interfaces:
-            count += 1
-            print(f"{count}: {interface}")
 
-        pick = input("Pick an interface: ")
-        return interfaces[int(pick)-1]
-    elif os.name == "nt":
-        return windows.recieve_interface()
-    else:
-        return "Invalid operating system"
-
-def RecieveHosts():
-    Subnet_list = ("10.0.0.0/24", "192.168.1.0/24", "192.168.0.0/24")
-
-    if settings["subnet"] == "null":
-        Subnet = input("1. 10.0.0.1\n2. 192.168.1.1\n3. 192.168.0.1\nRouter IP: ")
-
-
-    Local_Host_Info = {}
-    if settings["subnet"] != "null":
-        results = scapy.arping(settings["subnet"], verbose=0)[0]
-    else:
-        results = scapy.arping(Subnet_list[int(Subnet) - 1], verbose=0)[0]
-    for i in results:
-        Local_Host_Info[i[1].psrc] = i[1].hwsrc
-    del results
-    if settings["subnet"] == "null":
-        return Local_Host_Info, Subnet_list[int(Subnet) - 1]
-    else:
-        return Local_Host_Info
 
 
 def main_page():
@@ -72,65 +38,12 @@ def main_page():
 ======================================
   """
     print(art)
-    pick = input("1. Ease of Use Settings\n2. Discord Server\npress ENTER to continue\nChoice (1-2): ")
+    pick = input("\n1. Discord Server\n2. press ENTER to continue\n\nChoice (1-2): ")
 
-    if str(pick) == "1":
-
-        stop = True
-        while stop:
-            if os.name == "nt":
-                os.system("cls")
-            elif os.name == "posix":
-                os.system("clear")
-            art = """
- .-.      .  .                    
-(   )    _|__|_   o               
- `-.  .-. |  |    .  .--. .-...--.
-(   )(.-' |  |    |  |  |(   |`--.
- `-'  `--'`-'`-'-' `-'  `-`-`|`--'
-                          ._.' 
-===================================
-            """
-            print(art)
-            print(f"Interface: {settings['interface']}\nSubnet: {settings['subnet']}\nConsole: {settings['console']}\nConsole_port: {settings['console_port']}\nMobile: {settings['mobile']}")
-            print("command: [settings_name] [set] or press enter to continue")
-            print("console changes both subnet and console IP")
-            input_ = input("> ").lower()
-            if input_ == "":
-                return
-            input_ = input_.split(" ")
-            setting = input_[0]
-            command = input_[1]
-            counter = 0
-
-            if command == "set" and setting == "console":
-                settings["subnet"] = "null"
-                ips, subnet = RecieveHosts()
-                settings["subnet"] = subnet
-                sorted_ips = sorted(ips.keys(), key=lambda s: ipaddress.IPv4Address(s))
-                for ip in sorted_ips:
-                    print(f"{counter + 1}. IP:{ip}")
-                    counter += 1
-                pick = input("Pick Your Console IP (1-20): ")
-                settings["console"] = sorted_ips[int(pick) - 1]
-            elif command == "set" and setting == "interface":
-                interface = recieve_interface()
-                settings["interface"] = interface
-            elif command == "set" and setting == "console_port":
-                port = input("Enter Consoles Internal Port: ")
-                settings["console_port"] = port
-            elif command == "set" and setting == "mobile":
-                pick = input("Are you using A Mobile Phone (Rooted) ?\n1. (yes)\n2. (no)")
-                if pick == "1":
-                    settings["mobile"] = "yes"
-                elif pick == "2":
-                    settings["mobile"] = "no"
-            with open("puller.settings", "w") as f:
-                f.write(f"interface {settings['interface']}\nsubnet {settings['subnet']}\nconsole {settings['console']}\nconsole_port {settings['console_port']}\nmobile {settings['mobile']}")
-    elif pick == "2":
+    if pick == "1":
         print("Discord Server Code: AXHy4A4U\nDiscord Username: Reggie2561")
         input("Press ENTER to Continue")
-        main_page()
+
 def main():
 
     counter = 0
@@ -139,43 +52,8 @@ def main():
         os.system("cls")
     elif os.name == "posix":
         os.system("clear")
-    if settings["console"] != "null":
-        ip_macs = RecieveHosts()
-        if settings["console"] not in ip_macs.keys():
-            print("===============================\n\n\n")
-            print("OLD CONSOLE IP NO LONGER VALID.")
-            print("\n\n\n===============================\n\n\n")
-    else:
-        ip_macs, subnet = RecieveHosts()
 
-    sorted_ips = sorted(ip_macs.keys(), key=lambda s: ipaddress.IPv4Address(s))
-    if settings["console"] == "null":
-        for ip in sorted_ips:
-            print(f"{counter + 1}. IP:{ip} MAC:{ip_macs[ip]}")
-            counter += 1
-        pick = input("Pick Your Console IP (1-20): ")
-        settings["console"] = sorted_ips[int(pick) - 1]
 
-    sniffing_option = input("1. Xbox / PS4\n2. Local (PC Games)\nChoice: ")
-    if settings["interface"] == "null":
-        interface = recieve_interface()
-    else:
-        interface = settings["interface"]
-
-    if sniffing_option == "1" and settings["console"] == "null":
-        for ip in sorted_ips:
-            print(f"{counter + 1}. IP:{ip}      MAC:{ip_macs[ip]}")
-            counter += 1
-        del counter
-        pick = input("Please Pick a Device you would like to ARP Poison (1-20): ")
-
-        Target_IP = sorted_ips[int(pick)-1]
-        Target_MAC = ip_macs[Target_IP]
-        Spoof_IP = sorted_ips[0]
-        Spoof_MAC = ip_macs[Spoof_IP]
-        Router_MAC = ip_macs[Spoof_IP]
-
-        del pick
 
 
     if settings["console_port"] == "null":
@@ -183,20 +61,7 @@ def main():
     else:
         Console_port = settings["console_port"]
 
-    if sniffing_option == "1" and settings["console"] != "null":
-        ip = settings["console"]
 
-        Target_IP = ip
-        Target_MAC = ip_macs[ip]
-        Spoof_IP = sorted_ips[0]
-        Spoof_MAC = ip_macs[Spoof_IP]
-        Router_MAC = ip_macs[Spoof_IP]
-    elif sniffing_option == "2":
-        Target_IP = None
-        Target_MAC = None
-        Spoof_IP = None
-        Spoof_MAC = None
-        Router_MAC = None
 
 
 
@@ -208,13 +73,7 @@ def main():
 
 
 
-    puller.startthread(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Router_MAC, list(sorted_ips), interface, Console_port, settings["mobile"])
+    puller.startwebsite()
 
-
-
-    del Target_IP
-    del Target_MAC
-    del Spoof_IP
-    del interface
 
 main()
