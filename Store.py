@@ -1,8 +1,7 @@
 
 
 def Store_ip(ip_address):
-    with open("test.txt", "a") as ip_file:  # Changed "rt" to "r"
-        # You can add code here to process the IP address
+    with open("test.txt", "a") as ip_file:
         ip_file.write(f"{ip_address}+")
         ip_file.close()
 

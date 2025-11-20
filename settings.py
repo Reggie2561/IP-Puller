@@ -1,5 +1,4 @@
 import networking
-import ipaddress
 
 settings = {}
 

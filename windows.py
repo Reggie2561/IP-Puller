@@ -52,7 +52,7 @@ def enable_ipv4_forwarding_win(interface, status):
         except Exception as e:
             print("[-] Error while removing forwarding:", e)
 
-def recieve_interface():
+def receive_interface():
     output = subprocess.check_output("netsh interface show interface", shell=False, text=True)
     interfaces = []
     lines = output.splitlines()[3:]

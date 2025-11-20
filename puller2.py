@@ -1,4 +1,3 @@
-import os
 import time
 import threading
 import traceback
@@ -7,14 +6,12 @@ import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 from scapy.all import sniff, IP, UDP
-import scapy.all as scapy
 import IP_INFO
 import Store
 from datetime import datetime
-from flask import Flask, render_template_string, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template
 import settings as setting
 import networking
-import windows
 from ping import ping
 sniff_running = False
 sniff_thread = None
@@ -51,7 +48,7 @@ def index():
 
 
 # -----------------------
-# Save username POST endpoint
+# Naming/renaming/removing usernames POST endpoint
 # -----------------------
 @app.route("/save_username", methods=["POST"])
 def save_username():
@@ -62,7 +59,26 @@ def save_username():
     if username != "":
         with open("IPINFO.db", "a") as f:
             f.write(f"\n{username},{ip}")
-            captured_ips[ip][6] = username
+        captured_ips[ip][6] = username
+    return "", 204
+
+@app.route("/delete_username", methods=["POST"])
+def delete_username():
+    data = request.get_json()
+    ip = data.get("ip")
+    IP_INFO.remove(ip)
+    captured_ips[ip][6] = "N/A"
+
+    return "", 204
+
+@app.route("/rename_username", methods=["POST"])
+def rename_username():
+    data = request.get_json()
+    ip = data.get("ip")
+    new_name = data.get("new_username")
+    IP_INFO.rename(ip, new_name)
+    captured_ips[ip][6] = new_name
+
     return "", 204
 
 
@@ -269,17 +285,18 @@ def save_settings():
 @app.route("/sniff/start", methods=["POST"])
 def sniff_start():
     global sniff_running, sniff_thread
-
+    stop_event.clear()
     Router_IP = str(settings["subnet"]).replace("0/24", "1")
     Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Router_IP, local = setting.Recieve_INFO(Router_IP, settings["console"])
     needed_info.update({"Target_IP": Target_IP, "Target_MAC": Target_MAC, "Spoof_IP": Spoof_IP, "Spoof_MAC": Spoof_MAC, "Routers_IP": Router_IP, "local": local, "interface": settings["interface"]})
+
     if sniff_running:
         return "running", 204
+
     data = request.get_json()
     game_choice = data.get("game_choice", "3.1")
     interface = settings["interface"]
 
-    print(game_choice, interface)
 
     setup_sniffer(Target_IP, local, settings["console_port"])
     sniff_running = True
@@ -325,7 +342,9 @@ def sniff_stop():
 
     networking.Packet_Sender(needed_info["Target_IP"], needed_info["Target_MAC"], needed_info["Spoof_IP"], needed_info["Spoof_MAC"], needed_info["Routers_IP"], None, reset_arp=True)
     time.sleep(4)
+
     networking.Allow_ipv4_fowarding(0, needed_info["interface"])
+
     captured_ips.clear()
     connected.clear()
     removed.clear()
@@ -333,6 +352,8 @@ def sniff_stop():
     last_seen.clear()
     pps_history.clear()
     unstable.clear()
+    new_connection.clear()
+
     return "", 204
 
 
@@ -341,15 +362,12 @@ def start_site():
     app.run(host="0.0.0.0", port=1234, debug=True, use_reloader=False)
 
 
-def load_info():
-    global needed_info
-    return needed_info
+
 # ------------------------
 # Packet handling
 # ------------------------
 def handle_packet(packet):
     try:
-
         if IP in packet and UDP in packet:
             src_ip = packet[IP].src
             dst_ip = packet[IP].dst
@@ -469,8 +487,7 @@ def conncurent(stop,offset=0, server=False):
     # Connection tracking loop
     # --------------------------------------------
     while not stop.is_set():
-        if not sniff_running:
-            break
+        print(1)
         start_cycle = time.time()
         try:
             # Snapshot before
@@ -607,7 +624,7 @@ def conncurent(stop,offset=0, server=False):
         # Maintain perfect timing
         # -----------------------
         elapsed = time.time() - start_cycle
-        sleep_time = max(0, check_delay - elapsed)
+        sleep_time = max(0, int(check_delay) - int(elapsed))
         time.sleep(sleep_time)
 
 
@@ -655,7 +672,7 @@ def sniffing(game_choice, interface):
         filter=filters.get(game_choice, ""),
         prn=handle_packet,
         store=0,
-        stop_filter=lambda pkt: not sniff_running
+        stop_filter=lambda pkt: stop_event.is_set()
     )
 
 
@@ -672,9 +689,7 @@ def startwebsite():
     start_site()
     print("\n[INFO] KeyboardInterrupt received — shutting down...")
 
-
     stop_event.set()
-    print("======================\n\nResettings connections to your console\nPlease Be Patient should take about 6 seconds\n\n======================")
 
     print("======================\n\nDONE Please Close The Terminal\n\n======================")
 

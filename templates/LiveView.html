@@ -9,131 +9,46 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <meta name="theme-color" content="#0f172a">
 <style>
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  min-height: 100vh;
-  background: linear-gradient(to bottom, #0f172a 0vh, #1e293b 100vh);
-  color: white;
-  margin: 0;
-  padding: 0;
-}
-main {
-  padding: 100px 20px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+body { font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; background: linear-gradient(to bottom, #0f172a 0vh, #1e293b 100vh); color: white; margin: 0; padding: 0; }
+main { padding: 100px 20px 20px; display: flex; flex-direction: column; align-items: center; }
 @media (max-width: 600px) { main { padding: 70px 10px 10px; } }
-
-h2 {
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
-  margin-bottom: 10px;
-  color: #f1f5f9;
-  position: relative;
-}
-
+h2 { font-size: 1.25rem; letter-spacing: -0.02em; margin-bottom: 10px; color: #f1f5f9; position: relative; }
 .table-wrapper { width: 100%; overflow-x: auto; }
-
-table {
-  border-collapse: collapse;
-  width: 95%;
-  background: #1e293b;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 40px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-}
-th, td {
-  padding: 10px 14px;
-  text-align: left;
-  border-bottom: 1px solid #334155;
-  color: white;
-  line-height: 1.5;
-}
+table { border-collapse: collapse; width: 95%; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 40px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #334155; color: white; line-height: 1.5; }
 th { background-color: #111827; color: #f8fafc; }
 tr { transition: background-color 0.3s ease, transform 0.2s ease; }
 tr:hover { background-color: #334155; transform: scale(1.01); }
 .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
 .highlight-new { animation: fadeIn 1s ease; background-color: #22c55e44; }
 @keyframes fadeIn { from {background-color:#22c55e88;} to {background-color:transparent;} }
-
 .username-not-found { text-decoration: underline; text-decoration-color: yellow; text-underline-offset: 2px; }
-
-.top-bar {
-  position: fixed; top: 0; left: 0; right: 0;
-  background: #111827;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap; gap: 6px;
-  padding: 6px 10px;
-  z-index: 1000;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-
+.top-bar { position: fixed; top: 0; left: 0; right: 0; background: #111827; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 6px 10px; z-index: 1000; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
 .scroll-container { flex: 1; overflow: hidden; }
 .scroll-content { display: inline-flex; white-space: nowrap; animation: scrollLoop 20s linear infinite; }
 .scroll-text { display: inline-block; padding-right: 50px; }
 #scrollTextClone { display: none; }
-
 @keyframes scrollLoop { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
 @media (max-width: 768px) { #scrollTextClone { display: inline-block; } }
 @media (min-width: 769px) { .scroll-content { animation: none; } }
-
 .top-bar-buttons { display: flex; gap: 6px; flex-shrink: 0; }
 @media (max-width: 500px) { .top-bar-buttons { flex-direction: column; width: 100%; } #multiToolBtn, #sniffControl button { width: 100%; text-align: center; } }
-
-#multiToolBtn, .bar-btn {
-  padding: 6px 10px; border: 1px solid #3b82f6; border-radius: 5px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white; cursor: pointer; font-weight: 600; font-size: 0.8rem;
-  box-shadow: 0 2px 4px rgba(37,99,235,0.3); transition: all 0.2s ease;
-}
-#multiToolBtn:hover, .bar-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(37,99,235,0.4);
-}
-
+#multiToolBtn, .bar-btn { padding: 6px 10px; border: 1px solid #3b82f6; border-radius: 5px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; cursor: pointer; font-weight: 600; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(37,99,235,0.3); transition: all 0.2s ease; }
+#multiToolBtn:hover, .bar-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(37,99,235,0.4); }
 .field-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 15px; }
-
 .dropdown { position: relative; display: inline-block; }
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #1e293b;
-  min-width: 180px;
-  z-index: 1;
-  border-radius: 5px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  padding: 4px 0;
-}
-.dropdown-content button, .dropdown-content span {
-  color: white;
-  padding: 8px 12px;
-  text-align: left;
-  border: none;
-  background: none;
-  width: 100%;
-  cursor: pointer;
-}
+.dropdown-content { display: none; position: absolute; background-color: #1e293b; min-width: 180px; z-index: 1; border-radius: 5px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); padding: 4px 0; }
+.dropdown-content button, .dropdown-content span { color: white; padding: 8px 12px; text-align: left; border: none; background: none; width: 100%; cursor: pointer; }
 .dropdown-content button:hover, .submenu-content button:hover { background-color: #334155; }
-
 .submenu { position: relative; }
-.submenu-content {
-  display: none;
-  position: absolute;
-  left: 100%;
-  top: 0;
-  background-color: #1e293b;
-  border-radius: 5px;
-  min-width: 180px;
-  padding: 4px 0;
-}
+.submenu-content { display: none; position: absolute; left: 100%; top: 0; background-color: #1e293b; border-radius: 5px; min-width: 180px; padding: 4px 0; }
 .submenu:hover .submenu-content { display: block; }
 .dropdown:hover .dropdown-content { display: block; }
 .submenu span { display: flex; justify-content: space-between; }
+#userPopup { position: fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 9999; }
+#userPopupContent { background: #1e293b; padding: 20px; border-radius: 8px; min-width: 260px; display: flex; flex-direction: column; gap: 8px; }
+#userPopupContent button { padding: 8px; cursor: pointer; font-weight: 600; border-radius: 4px; border: none; background: #2563eb; color: white; }
+#userPopupContent button:hover { background: #1d4ed8; }
 </style>
 </head>
 <body>
@@ -152,14 +67,11 @@ tr:hover { background-color: #334155; transform: scale(1.01); }
 
 <main>
 <h2>Reggie's IP Puller</h2>
-
 <div class="field-btns">
   <div id="sniffControl">
-
     <div class="dropdown" id="sniffDropdown">
       <button class="bar-btn">Sniff Options ▼</button>
       <div class="dropdown-content">
-
         <div class="submenu">
           <span>P2P ▶</span>
           <div class="submenu-content">
@@ -170,7 +82,6 @@ tr:hover { background-color: #334155; transform: scale(1.01); }
             <button onclick="handleSniff('1.5')">Minecraft (Private Worlds)</button>
           </div>
         </div>
-
         <div class="submenu">
           <span>Servers ▶</span>
           <div class="submenu-content">
@@ -180,19 +91,15 @@ tr:hover { background-color: #334155; transform: scale(1.01); }
             <button onclick="handleSniff('2.4')">Rainbow Six Siege</button>
           </div>
         </div>
-
       </div>
     </div>
-
   </div>
 </div>
 
 <div class="table-wrapper">
 <table id="ipTable">
   <thead>
-    <tr>
-      {% for name in field_names %}<th>{{ name }}</th>{% endfor %}
-    </tr>
+    <tr>{% for name in field_names %}<th>{{ name }}</th>{% endfor %}</tr>
   </thead>
   <tbody id="ipBody"></tbody>
 </table>
@@ -202,14 +109,22 @@ tr:hover { background-color: #334155; transform: scale(1.01); }
 <div class="table-wrapper">
 <table id="leftTable">
   <thead>
-    <tr>
-      {% for name in left_field_names %}<th>{{ name }}</th>{% endfor %}
-    </tr>
+    <tr>{% for name in left_field_names %}<th>{{ name }}</th>{% endfor %}</tr>
   </thead>
   <tbody id="leftBody"></tbody>
 </table>
 </div>
 </main>
+
+<div id="userPopup">
+  <div id="userPopupContent">
+    <h3 id="popupIP">IP</h3>
+    <button id="popupAdd">Add Username</button>
+    <button id="popupRename">Rename Username</button>
+    <button id="popupDelete">Remove Username</button>
+    <button id="popupClose">Close</button>
+  </div>
+</div>
 
 <script>
 const field_names_js = {{ field_names|tojson }};
@@ -219,8 +134,16 @@ const tbody = document.getElementById('ipBody');
 const leftBody = document.getElementById('leftBody');
 const scrollText = document.getElementById('scrollText');
 const scrollTextClone = document.getElementById('scrollTextClone');
-
+const popup=document.getElementById("userPopup");
+const popupIP=document.getElementById("popupIP");
+const popupAdd=document.getElementById("popupAdd");
+const popupRename=document.getElementById("popupRename");
+const popupDelete=document.getElementById("popupDelete");
+const popupClose=document.getElementById("popupClose");
+let currentIP=null;
+let currentSpan=null;
 const statusColors = {"concurrent":"#ffffff","joined":"#22c55e","removed":"#7c3aed","disconnected":"#eab308","new_connection":"#3b82f6","left":"#ef4444"};
+
 function createStatusDot(color){return `<span class="status-dot" style="background:${color}"></span>`;}
 function updateTopBarText(html){scrollText.innerHTML=html;scrollTextClone.innerHTML=html;}
 
@@ -237,22 +160,19 @@ async function fetchData() {
       `${createStatusDot(statusColors.new_connection)} Just Joined: ${stats.new_connection} | ` +
       `${createStatusDot(statusColors.left)} Left Players: ${stats.left_players}`;
     updateTopBarText(html);
-
     const priority = {"purple":0,"green":1,"blue":2,"red":3};
     rows.sort((a,b)=>priority[a.status]-priority[b.status]);
-    tbody.innerHTML = '';
-    rows.forEach(row => {
-      const tr = document.createElement('tr');
+    tbody.innerHTML='';
+    rows.forEach(row=>{
+      const tr=document.createElement('tr');
       if(row.status==='blue') tr.classList.add('highlight-new');
       row.fields.forEach((f,idx)=>{
-        const td = document.createElement('td');
-        td.setAttribute('data-label', field_names_js[idx]);
+        const td=document.createElement('td');
+        td.setAttribute('data-label',field_names_js[idx]);
         if(idx===0) td.innerHTML=`${createStatusDot(row.status)} <span class="ip-text">${f.value}</span>`;
-        else if(idx===8) {
-          const usernameClass = f.value === "NOT FOUND" ? "username-text username-not-found" : "username-text";
-          td.innerHTML = `<span class="${usernameClass}" data-ip="${row.ip}">${f.value}</span>`;
-        } else td.textContent = f.value;
-        td.style.display = hiddenCols.has(idx) ? 'none' : '';
+        else if(idx===8) td.innerHTML=`<span class="${f.value==="NOT FOUND"?"username-text username-not-found":"username-text"}" data-ip="${row.fields[0].value}">${f.value}</span>`;
+        else td.textContent=f.value;
+        td.style.display=hiddenCols.has(idx)?'none':'';
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -262,21 +182,19 @@ async function fetchData() {
 
 async function fetchLeftData() {
   try {
-    const res = await fetch('/update_left_ips',{method:'PUT'});
-    const data = await res.json();
-    const rows = data.rows;
-    leftBody.innerHTML = '';
+    const res=await fetch('/update_left_ips',{method:'PUT'});
+    const data=await res.json();
+    const rows=data.rows;
+    leftBody.innerHTML='';
     rows.forEach(row=>{
       const tr=document.createElement('tr');
       row.fields.forEach((f,idx)=>{
         const td=document.createElement('td');
-        td.setAttribute('data-label', left_field_names_js[idx]);
+        td.setAttribute('data-label',left_field_names_js[idx]);
         if(idx===0) td.innerHTML=`${createStatusDot(statusColors.left)} <span class="ip-text">${f.value}</span>`;
-        else if(idx===6) {
-          const usernameClass = f.value === "NOT FOUND" ? "username-text username-not-found" : "username-text";
-          td.innerHTML = `<span class="${usernameClass}" data-ip="${row.ip}">${f.value}</span>`;
-        } else td.textContent = f.value;
-        td.style.display = hiddenCols.has(idx)?'none':'';
+        else if(idx===6) td.innerHTML=`<span class="${f.value==="NOT FOUND"?"username-text username-not-found":"username-text"}" data-ip="${row.fields[0].value}">${f.value}</span>`;
+        else td.textContent=f.value;
+        td.style.display=hiddenCols.has(idx)?'none':'';
         tr.appendChild(td);
       });
       leftBody.appendChild(tr);
@@ -284,50 +202,26 @@ async function fetchLeftData() {
   } catch(err){ console.error(err); }
 }
 
-function copyToClipboard(text) {
-  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(console.error);
-  else {
-    const t=document.createElement('textarea');
-    t.value=text; document.body.appendChild(t); t.select();
-    try{document.execCommand("copy");}catch{}
-    t.remove();
-  }
-}
+function copyToClipboard(text){if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(console.error); else {const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch{} t.remove();}}
 
 function handleCellClick(e){
-  const ipSpan = e.target.closest('.ip-text');
-  if(ipSpan){
-    copyToClipboard(ipSpan.textContent.trim());
-    ipSpan.style.backgroundColor="#22c55e88";
-    setTimeout(()=>ipSpan.style.backgroundColor="",500);
-  }
-  const userSpan = e.target.closest('.username-text');
-  if(userSpan){
-    const ip=userSpan.dataset.ip;
-    const username=prompt("Enter username for IP: "+ip);
-    if(username) fetch('/save_username',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ip,username})
-    }).then(()=>{
-      userSpan.textContent=username;
-      userSpan.classList.remove('username-not-found');
-    }).catch(console.error);
-  }
+  const ipSpan=e.target.closest('.ip-text');
+  if(ipSpan){ copyToClipboard(ipSpan.textContent.trim()); ipSpan.style.backgroundColor="#22c55e88"; setTimeout(()=>ipSpan.style.backgroundColor="",500); return; }
+  const userSpan=e.target.closest('.username-text');
+  if(userSpan){ currentIP=userSpan.dataset.ip; currentSpan=userSpan; popupIP.textContent="IP: "+currentIP; popup.style.display="flex"; }
 }
 
-tbody.addEventListener('click', handleCellClick);
-leftBody.addEventListener('click', handleCellClick);
+tbody.addEventListener('click',handleCellClick);
+leftBody.addEventListener('click',handleCellClick);
 
-setInterval(fetchData,1500);
-setInterval(fetchLeftData,5000);
-fetchData();
-fetchLeftData();
+popupClose.onclick=()=>popup.style.display="none";
+popupAdd.onclick=async()=>{ const username=prompt("Enter username to add:"); if(!username) return; await fetch('/save_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP,username})}); currentSpan.textContent=username; currentSpan.classList.remove('username-not-found'); popup.style.display="none"; };
+popupRename.onclick=async()=>{ const newName=prompt("Enter new username:"); if(!newName) return; await fetch('/rename_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP,new_username:newName})}); currentSpan.textContent=newName; currentSpan.classList.remove('username-not-found'); popup.style.display="none"; };
+popupDelete.onclick=async()=>{ await fetch('/delete_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP})}); currentSpan.textContent="NOT FOUND"; currentSpan.classList.add('username-not-found'); popup.style.display="none"; };
 
+// Sniff start/stop UI logic
 function showStopButton() {
-  document.getElementById("sniffControl").innerHTML = `
-    <button class="bar-btn" onclick="stopSniff()">Stop Sniffing</button>
-  `;
+  document.getElementById("sniffControl").innerHTML = `<button class="bar-btn" onclick="stopSniff()">Stop Sniffing</button>`;
 }
 
 function showDropdown() {
@@ -335,7 +229,6 @@ function showDropdown() {
     <div class="dropdown" id="sniffDropdown">
       <button class="bar-btn">Sniff Options ▼</button>
       <div class="dropdown-content">
-
         <div class="submenu">
           <span>P2P ▶</span>
           <div class="submenu-content">
@@ -346,7 +239,6 @@ function showDropdown() {
             <button onclick="handleSniff('1.5')">Minecraft (Private Worlds)</button>
           </div>
         </div>
-
         <div class="submenu">
           <span>Servers ▶</span>
           <div class="submenu-content">
@@ -356,7 +248,6 @@ function showDropdown() {
             <button onclick="handleSniff('2.4')">Rainbow Six Siege</button>
           </div>
         </div>
-
       </div>
     </div>
   `;
@@ -364,18 +255,18 @@ function showDropdown() {
 
 async function handleSniff(gameCode) {
   showStopButton();
-  await fetch('/sniff/start', {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json' },
-    body: JSON.stringify({ game_choice: gameCode })
-  });
+  await fetch('/sniff/start', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({game_choice:gameCode}) });
 }
 
 async function stopSniff() {
-  await fetch('/sniff/stop', { method: 'POST' });
+  await fetch('/sniff/stop', { method:'POST' });
   showDropdown();
 }
-</script>
 
+setInterval(fetchData,1500);
+setInterval(fetchLeftData,5000);
+fetchData();
+fetchLeftData();
+</script>
 </body>
 </html>

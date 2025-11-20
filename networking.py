@@ -20,7 +20,7 @@ def recieve_interface():
 
         return interfaces
     elif os.name == "nt":
-        return windows.recieve_interface()
+        return windows.receive_interface()
     else:
         return "Invalid operating system"
 
@@ -65,15 +65,15 @@ def ARP_PacketSpoofer(tip, tmac, spoofip, Router=None):
 # Packet sender
 # ------------------------
 def Packet_Sender(Target_IP, Target_Mac, Spoofip, SpoofMAC, Router_MAC, stop, reset_arp=False):
-    if reset_arp is False:
-        while str(stop).split()[3] == "unset>":
+    if not reset_arp:
+        while not stop.is_set():
             try:
                 ARP_PacketSpoofer(Target_IP, Target_Mac, Spoofip)
                 ARP_PacketSpoofer(Spoofip, SpoofMAC, Target_IP)
                 time.sleep(2)
             except:
                 break
-    if reset_arp is True:
+    elif reset_arp:
         for l in range(1,3):
             ARP_PacketSpoofer(Target_IP, Target_Mac, Spoofip, Router_MAC)
             ARP_PacketSpoofer(Spoofip, SpoofMAC, Target_IP, Router_MAC)
@@ -102,6 +102,3 @@ def Allow_ipv4_fowarding(status, interface):
             windows.enable_ipv4_forwarding_win(interface, 1)
         if status == 0:
             windows.enable_ipv4_forwarding_win(interface, 0)
-
-
-#f.write(f"interface {settings['interface']}\nsubnet {settings['subnet']}\nconsole {settings['console']}\nconsole_port {settings['console_port']}\nmobile {settings['mobile']}")

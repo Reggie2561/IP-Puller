@@ -1,10 +1,37 @@
 import requests
 import time
 
+def remove(ip):
+    with open("IPINFO.db", "r") as f:
+        lines = f.readlines()
+
+    cleaned = []
+    for l in lines:
+        if ip not in l:
+            cleaned.append(l)
+
+    with open("IPINFO.db", "w") as f:
+        f.writelines(cleaned)
+
+def rename(ip, new_username):
+    with open("IPINFO.db", "r") as f:
+        lines = f.readlines()
+
+    cleaned = []
+    for l in lines:
+        if ip not in l:
+            cleaned.append(l)
+        else:
+            cleaned.append(f"{new_username},{ip}\n")
+
+
+    with open("IPINFO.db", "w") as f:
+        f.writelines(cleaned)
 
 
 def get_username(ip=None, username=None, mode="ip"):
     usernames = {}
+
     with open("IPINFO.db", "r") as f:
         for line in f:
             if not line or "," not in line:

@@ -1,13 +1,11 @@
 import os
 import puller2 as puller
-import scapy.all as scapy
-import ipaddress
-import networking
 import setup
 import settings
 
-setup.check()
 
+setup.check()
+input("\n\nPress enter to continue...")
 settings = {}
 
 
@@ -15,12 +13,6 @@ with open("puller.settings", "r") as f:
     for line in f.readlines():
         settings_name, setting = line.split(" ")
         settings[settings_name.strip()] = setting.strip()
-
-
-
-active_interface = []
-
-
 
 
 
@@ -54,25 +46,7 @@ def main():
         os.system("clear")
 
 
-
-
-    if settings["console_port"] == "null":
-        Console_port = input("Enters Console Internal Port: ")
-    else:
-        Console_port = settings["console_port"]
-
-
-
-
-
-    ### starting sniffing alg
-    if os.name == "nt":
-        os.system("cls")
-    elif os.name == "posix":
-        os.system("clear")
-
-
-
+    ### starting website
     puller.startwebsite()
 
 
