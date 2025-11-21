@@ -3,7 +3,7 @@ import os
 # ==========================================
 # Compiles C for IPV4 Forwarding for Phones
 # ==========================================
-def ipv4_foward(interface, victim, router):
+def ipv4_foward(interface, victim_mac, router_mac):
     try:
         clang = os.popen("clang --version")
         clang = clang.read()
@@ -21,6 +21,6 @@ def ipv4_foward(interface, victim, router):
         os.popen("clang -O3 -march=native -o mobile Mobile.c")
 
     try:
-        os.popen(f"sudo ./mobile {interface} {victim} {router}")
+        os.system(f"sudo ./mobile {interface} {victim_mac} {router_mac}")
     except:
         print("Failed to start mobile forwarder.")

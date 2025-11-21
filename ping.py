@@ -78,8 +78,8 @@ def ping(target_ip: str) -> str:
 
         if this_rtt_values:
             rtts_formatted = ' ms | '.join(str(v) for v in this_rtt_values)
-            ping_results += f"{"="*50}\n{country:5} {city:5} {successful_pings}/4\n{rtts_formatted} ms\n"
+            ping_results += f"{'='*50}\n{country:5} {city:5} {successful_pings}/4\n{rtts_formatted} ms\n"
         else:
-            ping_results += f"{"="*50}\n{country} {city} 0/4\n{message or 'timeout'}\n"
+            ping_results += f"{'='*50}\n{country} {city} 0/4\n{message or 'timeout'}\n"
 
     return ping_results

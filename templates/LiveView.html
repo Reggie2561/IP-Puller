@@ -49,6 +49,26 @@ tr:hover { background-color: #334155; transform: scale(1.01); }
 #userPopupContent { background: #1e293b; padding: 20px; border-radius: 8px; min-width: 260px; display: flex; flex-direction: column; gap: 8px; }
 #userPopupContent button { padding: 8px; cursor: pointer; font-weight: 600; border-radius: 4px; border: none; background: #2563eb; color: white; }
 #userPopupContent button:hover { background: #1d4ed8; }
+
+/* Mobile 2-column card style for IP rows */
+@media (max-width: 600px) {
+  table, thead, tbody, th, td, tr { display: block; width: 100%; }
+  thead { display: none; }
+  tbody tr { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; padding: 8px; border: 1px solid #334155; border-radius: 8px; background: #1e293b; }
+  tbody td { display: flex; justify-content: flex-start; padding: 4px 8px; border: none; }
+  tbody td::before { content: attr(data-label) ": "; font-weight: 600; margin-right: 4px; color: #94a3b8; }
+}
+
+/* ISP truncation */
+.isp-text {
+  display: inline-block;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  cursor: default;
+}
 </style>
 </head>
 <body>
@@ -171,6 +191,11 @@ async function fetchData() {
         td.setAttribute('data-label',field_names_js[idx]);
         if(idx===0) td.innerHTML=`${createStatusDot(row.status)} <span class="ip-text">${f.value}</span>`;
         else if(idx===8) td.innerHTML=`<span class="${f.value==="NOT FOUND"?"username-text username-not-found":"username-text"}" data-ip="${row.fields[0].value}">${f.value}</span>`;
+        else if(idx===4) { // ISP column
+          const fullValue = f.value;
+          const displayValue = fullValue.length > 20 ? fullValue.slice(0,20)+'...' : fullValue;
+          td.innerHTML = `<span class="isp-text" title="${fullValue}">${displayValue}</span>`;
+        }
         else td.textContent=f.value;
         td.style.display=hiddenCols.has(idx)?'none':'';
         tr.appendChild(td);
@@ -219,11 +244,7 @@ popupAdd.onclick=async()=>{ const username=prompt("Enter username to add:"); if(
 popupRename.onclick=async()=>{ const newName=prompt("Enter new username:"); if(!newName) return; await fetch('/rename_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP,new_username:newName})}); currentSpan.textContent=newName; currentSpan.classList.remove('username-not-found'); popup.style.display="none"; };
 popupDelete.onclick=async()=>{ await fetch('/delete_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP})}); currentSpan.textContent="NOT FOUND"; currentSpan.classList.add('username-not-found'); popup.style.display="none"; };
 
-// Sniff start/stop UI logic
-function showStopButton() {
-  document.getElementById("sniffControl").innerHTML = `<button class="bar-btn" onclick="stopSniff()">Stop Sniffing</button>`;
-}
-
+function showStopButton() { document.getElementById("sniffControl").innerHTML = `<button class="bar-btn" onclick="stopSniff()">Stop Sniffing</button>`; }
 function showDropdown() {
   document.getElementById("sniffControl").innerHTML = `
     <div class="dropdown" id="sniffDropdown">

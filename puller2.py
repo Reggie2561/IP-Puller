@@ -59,7 +59,10 @@ def save_username():
     if username != "":
         with open("IPINFO.db", "a") as f:
             f.write(f"\n{username},{ip}")
-        captured_ips[ip][6] = username
+        if ip in captured_ips.keys():
+            captured_ips[ip][6] = username
+        if ip in left_session.keys():
+            left_session[ip][7] = username
     return "", 204
 
 @app.route("/delete_username", methods=["POST"])
@@ -67,7 +70,10 @@ def delete_username():
     data = request.get_json()
     ip = data.get("ip")
     IP_INFO.remove(ip)
-    captured_ips[ip][6] = "N/A"
+    if ip in captured_ips.keys():
+        captured_ips[ip][6] = "N/A"
+    if ip in left_session.keys():
+        left_session[ip][7] = "N/A"
 
     return "", 204
 
@@ -77,7 +83,10 @@ def rename_username():
     ip = data.get("ip")
     new_name = data.get("new_username")
     IP_INFO.rename(ip, new_name)
-    captured_ips[ip][6] = new_name
+    if ip in captured_ips.keys():
+        captured_ips[ip][6] = new_name
+    if ip in left_session.keys():
+        left_session[ip][7] = new_name
 
     return "", 204
 
@@ -319,7 +328,7 @@ def sniff_start():
         import mobile as mobile_script
 
         if settings["mobile"] == "yes":
-            mobile_foward_thread = threading.Thread(target=mobile_script.ipv4_foward, args=(Spoof_IP, Target_IP, Spoof_IP), daemon=False)
+            mobile_foward_thread = threading.Thread(target=mobile_script.ipv4_foward, args=(settings["interface"], Target_MAC, Spoof_MAC), daemon=False)
 
             mobile_foward_thread.start()
     arp_thread = threading.Thread(target=networking.Packet_Sender,
