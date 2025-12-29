@@ -2,6 +2,7 @@ import os
 
 installed = []
 required = ["beautifulsoup4", "flask", "requests", "scapy"]
+#unfinished but i was going to have it install missing dependency
 def check():
     with os.popen('pip list') as stdout:
         results = stdout.read().strip().split('\n')

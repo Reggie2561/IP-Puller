@@ -19,10 +19,22 @@ th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #334155;
 th { background-color: #111827; color: #f8fafc; }
 tr { transition: background-color 0.3s ease, transform 0.2s ease; }
 tr:hover { background-color: #334155; transform: scale(1.01); }
+
+/* Username underline for all usernames */
+.username-text {
+  text-decoration: underline;
+  text-decoration-color: yellow;
+  text-underline-offset: 2px;
+}
+
+/* Status dot */
 .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
+
+/* New row highlight */
 .highlight-new { animation: fadeIn 1s ease; background-color: #22c55e44; }
 @keyframes fadeIn { from {background-color:#22c55e88;} to {background-color:transparent;} }
-.username-not-found { text-decoration: underline; text-decoration-color: yellow; text-underline-offset: 2px; }
+
+/* Top bar */
 .top-bar { position: fixed; top: 0; left: 0; right: 0; background: #111827; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 6px 10px; z-index: 1000; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
 .scroll-container { flex: 1; overflow: hidden; }
 .scroll-content { display: inline-flex; white-space: nowrap; animation: scrollLoop 20s linear infinite; }
@@ -36,6 +48,8 @@ tr:hover { background-color: #334155; transform: scale(1.01); }
 #multiToolBtn, .bar-btn { padding: 6px 10px; border: 1px solid #3b82f6; border-radius: 5px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; cursor: pointer; font-weight: 600; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(37,99,235,0.3); transition: all 0.2s ease; }
 #multiToolBtn:hover, .bar-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(37,99,235,0.4); }
 .field-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 15px; }
+
+/* Dropdown */
 .dropdown { position: relative; display: inline-block; }
 .dropdown-content { display: none; position: absolute; background-color: #1e293b; min-width: 180px; z-index: 1; border-radius: 5px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); padding: 4px 0; }
 .dropdown-content button, .dropdown-content span { color: white; padding: 8px 12px; text-align: left; border: none; background: none; width: 100%; cursor: pointer; }
@@ -45,29 +59,42 @@ tr:hover { background-color: #334155; transform: scale(1.01); }
 .submenu:hover .submenu-content { display: block; }
 .dropdown:hover .dropdown-content { display: block; }
 .submenu span { display: flex; justify-content: space-between; }
+
+/* Popup */
 #userPopup { position: fixed; left: 0; top: 0; right: 0; bottom: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 9999; }
 #userPopupContent { background: #1e293b; padding: 20px; border-radius: 8px; min-width: 260px; display: flex; flex-direction: column; gap: 8px; }
 #userPopupContent button { padding: 8px; cursor: pointer; font-weight: 600; border-radius: 4px; border: none; background: #2563eb; color: white; }
 #userPopupContent button:hover { background: #1d4ed8; }
 
-/* Mobile 2-column card style for IP rows */
+/* ISP truncation */
+.isp-text { display: inline-block; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+
+/* Mobile card layout */
 @media (max-width: 600px) {
   table, thead, tbody, th, td, tr { display: block; width: 100%; }
   thead { display: none; }
-  tbody tr { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; padding: 8px; border: 1px solid #334155; border-radius: 8px; background: #1e293b; }
-  tbody td { display: flex; justify-content: flex-start; padding: 4px 8px; border: none; }
-  tbody td::before { content: attr(data-label) ": "; font-weight: 600; margin-right: 4px; color: #94a3b8; }
-}
-
-/* ISP truncation */
-.isp-text {
-  display: inline-block;
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-  cursor: default;
+  tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 8px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    background: #1e293b;
+  }
+  tbody td {
+    display: flex;
+    justify-content: flex-start;
+    padding: 4px 8px;
+    border: none;
+  }
+  tbody td::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+    margin-right: 4px;
+    color: #94a3b8;
+  }
 }
 </style>
 </head>
@@ -111,6 +138,7 @@ tr:hover { background-color: #334155; transform: scale(1.01); }
             <button onclick="handleSniff('2.4')">Rainbow Six Siege</button>
           </div>
         </div>
+        <button onclick="handleSniff('3.1')">Sniff All</button>
       </div>
     </div>
   </div>
@@ -190,8 +218,8 @@ async function fetchData() {
         const td=document.createElement('td');
         td.setAttribute('data-label',field_names_js[idx]);
         if(idx===0) td.innerHTML=`${createStatusDot(row.status)} <span class="ip-text">${f.value}</span>`;
-        else if(idx===8) td.innerHTML=`<span class="${f.value==="NOT FOUND"?"username-text username-not-found":"username-text"}" data-ip="${row.fields[0].value}">${f.value}</span>`;
-        else if(idx===4) { // ISP column
+        else if(idx===8) td.innerHTML=`<span class="username-text" data-ip="${row.fields[0].value}">${f.value}</span>`;
+        else if(idx===4) {
           const fullValue = f.value;
           const displayValue = fullValue.length > 20 ? fullValue.slice(0,20)+'...' : fullValue;
           td.innerHTML = `<span class="isp-text" title="${fullValue}">${displayValue}</span>`;
@@ -212,14 +240,14 @@ async function fetchLeftData() {
     const rows=data.rows;
     leftBody.innerHTML='';
     rows.forEach(row=>{
-      const tr=document.createElement('tr');
+      const tr = document.createElement('tr');
       row.fields.forEach((f,idx)=>{
-        const td=document.createElement('td');
-        td.setAttribute('data-label',left_field_names_js[idx]);
-        if(idx===0) td.innerHTML=`${createStatusDot(statusColors.left)} <span class="ip-text">${f.value}</span>`;
-        else if(idx===6) td.innerHTML=`<span class="${f.value==="NOT FOUND"?"username-text username-not-found":"username-text"}" data-ip="${row.fields[0].value}">${f.value}</span>`;
-        else td.textContent=f.value;
-        td.style.display=hiddenCols.has(idx)?'none':'';
+        const td = document.createElement('td');
+        td.setAttribute('data-label', left_field_names_js[idx]);
+        if(idx===0) td.innerHTML = `${createStatusDot(statusColors.left)} <span class="ip-text">${f.value}</span>`;
+        else if(idx===7) td.innerHTML = `<span class="username-text" data-ip="${row.fields[0].value}">${f.value}</span>`;
+        else td.textContent = f.value;
+        td.style.display = hiddenCols.has(idx)?'none':'';
         tr.appendChild(td);
       });
       leftBody.appendChild(tr);
@@ -227,7 +255,17 @@ async function fetchLeftData() {
   } catch(err){ console.error(err); }
 }
 
-function copyToClipboard(text){if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(console.error); else {const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch{} t.remove();}}
+function copyToClipboard(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(console.error);
+  else {
+    const t=document.createElement('textarea');
+    t.value=text;
+    document.body.appendChild(t);
+    t.select();
+    try{document.execCommand("copy");}catch{}
+    t.remove();
+  }
+}
 
 function handleCellClick(e){
   const ipSpan=e.target.closest('.ip-text');
@@ -240,9 +278,9 @@ tbody.addEventListener('click',handleCellClick);
 leftBody.addEventListener('click',handleCellClick);
 
 popupClose.onclick=()=>popup.style.display="none";
-popupAdd.onclick=async()=>{ const username=prompt("Enter username to add:"); if(!username) return; await fetch('/save_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP,username})}); currentSpan.textContent=username; currentSpan.classList.remove('username-not-found'); popup.style.display="none"; };
-popupRename.onclick=async()=>{ const newName=prompt("Enter new username:"); if(!newName) return; await fetch('/rename_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP,new_username:newName})}); currentSpan.textContent=newName; currentSpan.classList.remove('username-not-found'); popup.style.display="none"; };
-popupDelete.onclick=async()=>{ await fetch('/delete_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP})}); currentSpan.textContent="NOT FOUND"; currentSpan.classList.add('username-not-found'); popup.style.display="none"; };
+popupAdd.onclick=async()=>{ const username=prompt("Enter username to add:"); if(!username) return; await fetch('/save_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP,username})}); currentSpan.textContent=username; popup.style.display="none"; };
+popupRename.onclick=async()=>{ const newName=prompt("Enter new username:"); if(!newName) return; await fetch('/rename_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP,new_username:newName})}); currentSpan.textContent=newName; popup.style.display="none"; };
+popupDelete.onclick=async()=>{ await fetch('/delete_username',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ip:currentIP})}); currentSpan.textContent="NOT FOUND"; popup.style.display="none"; };
 
 function showStopButton() { document.getElementById("sniffControl").innerHTML = `<button class="bar-btn" onclick="stopSniff()">Stop Sniffing</button>`; }
 function showDropdown() {
@@ -269,6 +307,7 @@ function showDropdown() {
             <button onclick="handleSniff('2.4')">Rainbow Six Siege</button>
           </div>
         </div>
+        <button onclick="handleSniff('3.1')">Sniff All</button>
       </div>
     </div>
   `;

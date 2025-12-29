@@ -1,7 +1,7 @@
 import os
 
 # ==========================================
-# Compiles C for IPV4 Forwarding for Phones
+# Compiles C for IPV4 Forwarding for Phones! (note switching to a rooted method for a Wi-Fi bridge mode or wifi hotspot.)
 # ==========================================
 def ipv4_foward(interface, victim_mac, router_mac):
     try:

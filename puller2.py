@@ -258,7 +258,7 @@ def username_lookup_target(username):
 
 
 # -----------------------
-# Start Flask and Contains Core inner Workings of the HTML
+# gives all local network ips except for the xboxes ip used for filtering out requests
 # -----------------------
 @app.route("/get_local_hosts", methods=["POST"])
 def get_local_hosts():
@@ -266,12 +266,12 @@ def get_local_hosts():
     router = r["router"] ## should come in a string 192.168.1.1
 
     return jsonify(networking.RecieveHosts(str(router).strip()))
-
+# give website ability to give all active interfaces for the interface selection menu in settings
 @app.route("/get_interface", methods=["POST"])
 def get_interface():
     interfaces = networking.recieve_interface()
     return jsonify(interfaces)
-
+# For the settings page
 @app.route("/save_settings", methods=["POST"])
 def save_settings():
     global needed_info, settings
@@ -281,16 +281,17 @@ def save_settings():
     console = str(data["console"])
     port = str(data["port"])
     mobile = str(data["mobile"])
+    local = str(data["local_sniff"])
 
       ## should come in a string 192.168.1.1
     parts = subnet.split(".")
     subnet = ".".join(parts[:3]) + ".0/24"
 
-    setting.update(interface, subnet, console, port, mobile)
-    settings.update({"interface": interface, "subnet": subnet, "console": console, "port": port, "mobile": mobile})
+    setting.update(interface, subnet, console, port, mobile, local)
+    settings.update({"interface": interface, "subnet": subnet, "console": console, "port": port, "mobile": mobile, "local_sniff": local})
     print(settings)
     return ""
-
+#starts the sniffing loop with the selected game
 @app.route("/sniff/start", methods=["POST"])
 def sniff_start():
     global sniff_running, sniff_thread
@@ -324,23 +325,24 @@ def sniff_start():
         conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=False)
 
     networking.Allow_ipv4_fowarding(1, interface)
-    if Target_IP is not None:
+    if settings["local"] is False:
+        arp_thread = threading.Thread(target=networking.Packet_Sender,
+                                      args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Spoof_MAC, stop_event),
+                                      daemon=False)
+        arp_thread.start()
+
+    if settings["mobile"] == "yes":
         import mobile as mobile_script
+        mobile_foward_thread = threading.Thread(target=mobile_script.ipv4_foward, args=(settings["interface"], Target_MAC, Spoof_MAC), daemon=False)
+        mobile_foward_thread.start()
 
-        if settings["mobile"] == "yes":
-            mobile_foward_thread = threading.Thread(target=mobile_script.ipv4_foward, args=(settings["interface"], Target_MAC, Spoof_MAC), daemon=False)
 
-            mobile_foward_thread.start()
-    arp_thread = threading.Thread(target=networking.Packet_Sender,
-                                  args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Spoof_MAC, stop_event),
-                                  daemon=False)
-    arp_thread.start()
     conn_thread.start()
     conn_thread2.start()
 
     print("started sniffing")
     return "Started", 204
-
+# resets all lists except left session and stops the sniffing loop
 @app.route("/sniff/stop", methods=["POST"])
 def sniff_stop():
     global sniff_running
@@ -373,7 +375,7 @@ def start_site():
 
 
 # ------------------------
-# Packet handling
+# Packet handling PS. Most game traffic for p2p is udp protocol, servers usually use TCP
 # ------------------------
 def handle_packet(packet):
     try:
@@ -622,7 +624,7 @@ def conncurent(stop,offset=0, server=False):
                         connected.remove(conn)
                     last_seen.pop(conn, None)
                     pps_history.pop(conn, None)
-            # Limit left_session size
+            # Limit for left_session
             while len(left_session) >= max_left_session:
                 del left_session[next(iter(left_session))]
 
@@ -630,7 +632,7 @@ def conncurent(stop,offset=0, server=False):
             print("Concurrent Loop Error:\n" + traceback.format_exc())
 
         # -----------------------
-        # Maintain perfect timing
+        # Maintain perfect timing for threads
         # -----------------------
         elapsed = time.time() - start_cycle
         sleep_time = max(0, int(check_delay) - int(elapsed))
@@ -655,26 +657,32 @@ def setup_sniffer(Target_IP, localhosts, console_port):
         else:
             filter_nets += f"and not net {ip}/32 "
     global filters
-    filters = {
-        "1.1": f"udp src port 6672 and not net 177.237.0.0/16 and not net 192.81.0.0/16 and not net 192.168.0.0/16 and {filter_nets}",
-        "1.2": f"((udp src port {console_port}) or (udp src port 3074) or (udp src port 50306)) and ({filter_nets})",
-        "1.3": f"udp src port 3075 and not net 192.168.0.0/16 and {filter_nets}",
-        "1.4": f"(udp port {console_port} or udp port 3074) and {filter_nets}",
-        "1.5": f"udp port {console_port} and {filter_nets}",
-        "2.1": f"udp and src portrange 49152-65535 and not net 192.168.0.0/16 and {filter_nets}",
-        "2.2": f"(udp and ((src port 2700 or src port 2500 or src port 3600 or src port 3800 or src port 2400 or (src port >= 61101 and src port <= 63614))) and ({filter_nets}))",
-        "2.3": f"udp port {console_port} and {filter_nets}",
-        "2.4": f"udp port {console_port} and {filter_nets}",
-        "3.1": f"{filter_nets}"
-    }
+    if local_sniff:
+        filters = {"3.1": ""}
+    if settings["local"]:
+        # Need to put Custom Loading for custom games. I will put custom filters to load 24/7 even if on console or pc Pulling
+        filters = {"3.1": ""}
+    else:
+        filters = {
+            "1.1": f"udp src port 6672 and not net 177.237.0.0/16 and not net 192.81.0.0/16 and not net 192.168.0.0/16 and {filter_nets}",
+            "1.2": f"((udp src port {console_port}) or (udp src port 3074) or (udp src port 50306)) and ({filter_nets})",
+            "1.3": f"udp src port 3075 and not net 192.168.0.0/16 and {filter_nets}",
+            "1.4": f"(udp port {console_port} or udp port 3074) and {filter_nets}",
+            "1.5": f"udp port {console_port} and {filter_nets}",
+            "2.1": f"udp and src portrange 49152-65535 and not net 192.168.0.0/16 and {filter_nets}",
+            "2.2": f"(udp and ((src port 2700 or src port 2500 or src port 3600 or src port 3800 or src port 2400 or (src port >= 61101 and src port <= 63614))) and ({filter_nets}))",
+            "2.3": f"udp port {console_port} and {filter_nets}",
+            "2.4": f"udp port {console_port} and {filter_nets}",
+            "3.1": f"{filter_nets}"
+        }
 
-
+# starts a scapy sniff() to capture traffic
 def sniffing(game_choice, interface):
     global sniff_running, filters
     sniff_running = True
 
     if not sniff_running:
-        return  # sniff stops if sniff_running becomes False
+        return
 
     sniff(
         iface=interface,

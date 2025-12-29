@@ -9,6 +9,7 @@ PingCheckResults = dict[str, list[
 
 CHECK_HOST_API = 'https://check-host.net'
 
+#stolen from p2p sniffer on github (delete comment when Read)
 
 def ping(target_ip: str) -> str:
     """Send a ping to the target IP and return raw RTT values per node."""

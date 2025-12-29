@@ -5,12 +5,13 @@ import time
 
 settings = {}
 
-
+# reads settings
 with open("puller.settings", "r") as f:
     for line in f.readlines():
         settings_name, setting = line.split(" ")
         settings[settings_name.strip()] = setting.strip()
 
+# list of Active interfaces
 def recieve_interface():
     if os.name == "posix":
         cmd = "ip a | grep \"state UP\" | awk -F: '{print $2}' | tr -d ' '"
@@ -23,7 +24,7 @@ def recieve_interface():
         return windows.receive_interface()
     else:
         return "Invalid operating system"
-
+# Gives all local clients
 def RecieveHosts(Subnet):
     import scapy.all as scapy
 
@@ -46,7 +47,7 @@ def RecieveHosts(Subnet):
     return Local_Host_Info
 
 # -----------------------
-# packet spoofer
+# ARP Spoofer
 # -----------------------
 def ARP_PacketSpoofer(tip, tmac, spoofip, Router=None):
     if Router is None:
@@ -62,7 +63,7 @@ def ARP_PacketSpoofer(tip, tmac, spoofip, Router=None):
 
 
 # ------------------------
-# Packet sender
+# Calls the ARP spoofing function
 # ------------------------
 def Packet_Sender(Target_IP, Target_Mac, Spoofip, SpoofMAC, Router_MAC, stop, reset_arp=False):
     if not reset_arp:

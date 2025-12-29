@@ -2,11 +2,11 @@ import networking
 
 settings = {}
 
-
-def update(interface, subnet, console, console_port, mobile):
+# updates settings in the puller.settings file
+def update(interface, subnet, console, console_port, mobile, local_sniff):
     with open("puller.settings", "w") as f:
-        f.write(f"interface {interface}\nsubnet {subnet}\nconsole {console}\nconsole_port {console_port}\nmobile {mobile}")
-
+        f.write(f"interface {interface}\nsubnet {subnet}\nconsole {console}\nconsole_port {console_port}\nmobile {mobile}\nlocal {local_sniff}")
+# function for reading puller.settings
 def read():
     with open("puller.settings", "r") as f:
         for line in f.readlines():
@@ -14,7 +14,7 @@ def read():
             settings[setting] = rule.strip()
         return settings
 
-
+# gives you list of all clients but not the xboxs,ps,pc,ect
 def Recieve_INFO(Router, target):
     ip_macs = networking.RecieveHosts(Router)
     ips = []
