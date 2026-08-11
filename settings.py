@@ -5,7 +5,7 @@ settings = {}
 # updates settings in the puller.settings file
 def update(interface, router_ip, subnet, console, console_port, PullType, mobile):
     with open("puller.settings", "w") as f:
-        f.write(f"interface {interface}\nrouter_ip {router_ip}\nsubnet {subnet}\nconsole {console}\nconsole_port {console_port}\npullingMethod {PullType.replace('', '_')}\nmobile {mobile}")
+        f.write(f"interface {interface}\nrouter_ip {router_ip}\nsubnet {subnet}\nconsole {console}\nconsole_port {console_port}\npullingMethod {PullType.replace(' ', '_')}\nmobile {mobile}")
 # function for reading puller.settings
 def read():
     with open("puller.settings", "r") as f:
