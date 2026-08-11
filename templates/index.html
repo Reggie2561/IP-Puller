@@ -68,10 +68,18 @@ button { margin-top: 20px; padding: 10px 14px; font-weight: 600; border-radius: 
   </div>
 
   <div class="field-block">
-    <div class="field-label">Mobile</div>
+    <div class="field-label">Using a phone?</div>
     <select class="select-btn" id="mobile">
       <option>no</option>
       <option>yes</option>
+    </select>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">Local Pulling Or External Device</div>
+    <select class="select-btn" id="pulling_type">
+      <option>Local Pulling</option>
+      <option>External Pulling</option>
     </select>
   </div>
 
@@ -162,9 +170,10 @@ document.getElementById('router_ip').addEventListener('blur', e => {
 // Save settings
 document.getElementById('save_btn').addEventListener('click', () => {
   const interfaceVal = document.getElementById('interface').value;
-  const subnetVal = document.getElementById('router_ip').value;
+  const routerVal = document.getElementById('router_ip').value;
   const consoleVal = document.getElementById('console').value;
   const portVal = document.getElementById('console_port').value;
+  const pullVal = document.getElementById('pulling_type').value;
   const mobileVal = document.getElementById('mobile').value;
 
   fetch('/save_settings', {
@@ -172,9 +181,10 @@ document.getElementById('save_btn').addEventListener('click', () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       interface: interfaceVal,
-      subnet: subnetVal,
+      router: routerVal,
       console: consoleVal,
       port: portVal,
+      PullType: pullVal,
       mobile: mobileVal
     })
   })

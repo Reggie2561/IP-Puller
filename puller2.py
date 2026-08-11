@@ -277,26 +277,31 @@ def save_settings():
     global needed_info, settings
     data = request.get_json()
     interface = str(data["interface"])
-    subnet = str(data["subnet"])
+    router_ip = str(data["router"])
+    PullType = str(data["PullType"])
     console = str(data["console"])
     port = str(data["port"])
     mobile = str(data["mobile"])
-    local = str(data["local_sniff"])
+
 
       ## should come in a string 192.168.1.1
-    parts = subnet.split(".")
+    parts = router_ip.split(".")
     subnet = ".".join(parts[:3]) + ".0/24"
 
-    setting.update(interface, subnet, console, port, mobile, local)
-    settings.update({"interface": interface, "subnet": subnet, "console": console, "port": port, "mobile": mobile, "local_sniff": local})
-    print(settings)
+    setting.update(interface, router_ip, subnet, console, port, PullType, mobile)
+
+
+    settings.update({"interface": interface, "router_ip": router_ip, "subnet": subnet, "console": console, "port": port, "mobile": mobile})
     return ""
 #starts the sniffing loop with the selected game
 @app.route("/sniff/start", methods=["POST"])
 def sniff_start():
     global sniff_running, sniff_thread
     stop_event.clear()
-    Router_IP = str(settings["subnet"]).replace("0/24", "1")
+    print(settings["subnet"])
+
+    Router_IP = str(settings["router_ip"])
+    print(Router_IP)
     Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Router_IP, local = setting.Recieve_INFO(Router_IP, settings["console"])
     needed_info.update({"Target_IP": Target_IP, "Target_MAC": Target_MAC, "Spoof_IP": Spoof_IP, "Spoof_MAC": Spoof_MAC, "Routers_IP": Router_IP, "local": local, "interface": settings["interface"]})
 
@@ -325,11 +330,11 @@ def sniff_start():
         conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=False)
 
     networking.Allow_ipv4_fowarding(1, interface)
-    if settings["local"] is False:
-        arp_thread = threading.Thread(target=networking.Packet_Sender,
+
+    arp_thread = threading.Thread(target=networking.Packet_Sender,
                                       args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Spoof_MAC, stop_event),
                                       daemon=False)
-        arp_thread.start()
+    arp_thread.start()
 
     if settings["mobile"] == "yes":
         import mobile as mobile_script
@@ -657,13 +662,9 @@ def setup_sniffer(Target_IP, localhosts, console_port):
         else:
             filter_nets += f"and not net {ip}/32 "
     global filters
-    if local_sniff:
-        filters = {"3.1": ""}
-    if settings["local"]:
-        # Need to put Custom Loading for custom games. I will put custom filters to load 24/7 even if on console or pc Pulling
-        filters = {"3.1": ""}
-    else:
-        filters = {
+
+
+    filters = {
             "1.1": f"udp src port 6672 and not net 177.237.0.0/16 and not net 192.81.0.0/16 and not net 192.168.0.0/16 and {filter_nets}",
             "1.2": f"((udp src port {console_port}) or (udp src port 3074) or (udp src port 50306)) and ({filter_nets})",
             "1.3": f"udp src port 3075 and not net 192.168.0.0/16 and {filter_nets}",

@@ -63,5 +63,4 @@ def receive_interface():
             interface_name = " ".join(parts[3:])
             interfaces.append(interface_name)
 
-
     return interfaces
