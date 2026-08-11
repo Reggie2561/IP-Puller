@@ -391,7 +391,7 @@ def handle_packet(packet):
 
             if src_ip == target[0]:
                 src_ip = dst_ip
-
+            print(src_ip)
             if src_ip not in captured_ips and src_ip not in invalid_local_hosts:
                 Store.Store_ip(src_ip)
                 info = IP_INFO.get_ip(src_ip)
@@ -665,7 +665,7 @@ def setup_sniffer(Target_IP, localhosts, console_port):
 
 
     filters = {
-            "1.1": f"udp src port 6672 and not net 177.237.0.0/16 and not net 192.81.0.0/16 and not net 192.168.0.0/16 and {filter_nets}",
+            "1.1": f"udp src port 6672 and not net {filter_nets}",
             "1.2": f"((udp src port {console_port}) or (udp src port 3074) or (udp src port 50306)) and ({filter_nets})",
             "1.3": f"udp src port 3075 and not net 192.168.0.0/16 and {filter_nets}",
             "1.4": f"(udp port {console_port} or udp port 3074) and {filter_nets}",
