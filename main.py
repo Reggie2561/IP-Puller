@@ -1,10 +1,10 @@
+import setup
+setup.check()
 import os
 import puller2 as puller
-import setup
 import settings
 
 
-setup.check()
 input("\n\nPress enter to continue...")
 settings = {}
 
