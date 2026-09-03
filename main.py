@@ -1,8 +1,7 @@
 import setup
 setup.check()
 import os
-import puller2 as puller
-import settings
+import puller3 as puller
 
 
 input("\n\nPress enter to continue...")

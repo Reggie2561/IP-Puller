@@ -20,11 +20,14 @@ def Recieve_INFO(Router, target):
     ip_macs = networking.RecieveHosts(Router)
     ips = []
     Target_IP = target
-    Target_MAC = ip_macs[Target_IP]
+    read()
+    if settings["pullingMethod"] != "Local_Pulling":
+        Target_MAC = ip_macs.get(Target_IP)
+    else:
+        Target_MAC = "00:00:00:00:00:00"
 
     Spoof_IP = Router
-    print(ip_macs[Spoof_IP])
-    Spoof_MAC = ip_macs[Spoof_IP]
+    Spoof_MAC = ip_macs.get(Spoof_IP)
 
     Router_IP = Router
     for ip in ip_macs.keys():

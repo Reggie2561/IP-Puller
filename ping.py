@@ -32,7 +32,6 @@ def ping(target_ip: str) -> str:
     def get_ping_results(request_id: str, delay: int = 10) -> PingCheckResults:
         for i in range(delay, 0, -1):
             time.sleep(1)
-        print(' ' * 50, end='\r')
 
         response = s.get(f'{CHECK_HOST_API}/check-result/{request_id}', headers={'Accept': 'application/json'})
         response.raise_for_status()

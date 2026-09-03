@@ -1,7 +1,7 @@
 interface Wi-Fi
-router_ip 10.220.234.179
-subnet 10.220.234.0/24
-console 10.220.234.90
-console_port 3074
+router_ip 10.168.168.1
+subnet 10.168.168.0/24
+console 10.168.168.37
+console_port 50322
 pullingMethod Local_Pulling
 mobile no

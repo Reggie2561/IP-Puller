@@ -35,16 +35,15 @@ def RecieveHosts(Subnet):
     if len(parts) != 4:
         return {}  # invalid IP
     network = ".".join(parts[:3]) + ".0/24"
-    print(network)
 
     try:
-        results = scapy.arping(network, verbose=0)[0]
+        results = scapy.arping(network, verbose=0)
         for sent, received in results:
-            Local_Host_Info[received.psrc] = received.hwsrc
+            if received.haslayer(scapy.ARP):
+                Local_Host_Info[received.psrc] = received.hwsrc
     except Exception as e:
         print("ARP scan failed:", e)
         return {}
-    print(Local_Host_Info)
     return Local_Host_Info
 
 # -----------------------
