@@ -1,7 +1,7 @@
 import os
 
 installed = []
-required = ["beautifulsoup4", "flask", "requests", "scapy"]
+required = ["beautifulsoup4", "flask", "requests", "scapy", "licensing"]
 #unfinished but i was going to have it install missing dependency
 def check():
     with os.popen('pip list') as stdout:
@@ -15,6 +15,8 @@ def check():
                 installed.append("scapy")
             if "requests" in result:
                 installed.append("requests")
+            if "licensing" in result:
+                installed.append("licensing")
 
     for item in required:
         if item not in installed:

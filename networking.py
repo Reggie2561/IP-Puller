@@ -37,8 +37,8 @@ def RecieveHosts(Subnet):
     network = ".".join(parts[:3]) + ".0/24"
 
     try:
-        results = scapy.arping(network, verbose=0)
-        for sent, received in results:
+        ans, unans = scapy.arping(network, verbose=0)
+        for sent, received in ans:
             if received.haslayer(scapy.ARP):
                 Local_Host_Info[received.psrc] = received.hwsrc
     except Exception as e:
@@ -87,7 +87,7 @@ def Allow_ipv4_fowarding(status, interface):
     ##0 off
     ##1 on
     if os.name == "posix":
-        if settings["mobile"] == "no":
+        if settings.get("PullingMode", "External_Pulling") == "External_Pulling":
             with os.popen("sudo sysctl net.ipv4.ip_forward") as status_:
                 if status_.read().strip() == "net.ipv4.ip_forward = 0":
 

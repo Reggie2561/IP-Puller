@@ -12,6 +12,8 @@ from datetime import datetime
 from flask import Flask, jsonify, request, render_template
 import settings as setting
 import networking
+import os
+import ipaddress
 from ping import ping
 sniff_running = False
 sniff_thread = None
@@ -38,6 +40,128 @@ first_joined = {}
 pc_filters = {}
 filters = {}
 app = Flask(__name__)
+
+
+# -----------------------
+# PC network auto-detection (for Local Pulling)
+# -----------------------
+def iface_netinfo_all():
+    """Parse ipconfig/ip a once, return {interface: {router_ip, subnet, local_ip}}."""
+    result = {}
+    if os.name == "nt":
+        output = os.popen("ipconfig").read()
+        sections = []
+        current_header = ""
+        current_lines = []
+        for line in output.splitlines():
+            if "adapter" in line and ":" in line:
+                if current_lines:
+                    sections.append((current_header, current_lines))
+                inner = line.split("adapter", 1)[1].split(":")[0].strip()
+                current_header = inner
+                current_lines = []
+            else:
+                current_lines.append(line)
+        if current_lines:
+            sections.append((current_header, current_lines))
+
+        for adapter, lines in sections:
+            ip_line = None
+            mask_line = None
+            gw_line = None
+            for line in lines:
+                if "IPv4 Address" in line:
+                    ip_line = line.split(":")[-1].strip()
+                elif ip_line and "Subnet Mask" in line:
+                    mask_line = line.split(":")[-1].strip()
+                elif ip_line and "Default Gateway" in line:
+                    gw = line.split(":")[-1].strip()
+                    if gw:
+                        gw_line = gw
+                        break
+            if ip_line and mask_line:
+                net = ipaddress.IPv4Network(f"{ip_line}/{mask_line}", strict=False)
+                result[adapter] = {
+                    "router_ip": gw_line or ip_line,
+                    "subnet": str(net),
+                    "local_ip": ip_line,
+                }
+    else:
+        import subprocess
+        gw = os.popen("ip route show default 2>/dev/null | awk '{print $3}'").read().strip()
+        iface = os.popen("ip route show default 2>/dev/null | awk '{print $5}'").read().strip()
+        local_ip = ""
+        subnet = ""
+        iface_friendly = iface
+        # Populate result for the default-route interface
+        port_lines = subprocess.run(
+            ["ip", "-o", "-4", "addr", "show"], capture_output=True, text=True
+        ).stdout.splitlines()
+        for line_ in port_lines:
+            parts = line_.split()
+            if len(parts) >= 4 and parts[1] == iface:
+                local_ip = parts[3].split("/")[0]
+                subnet = parts[3]
+                break
+        result[iface_friendly] = {
+            "router_ip": gw,
+            "subnet": subnet,
+            "local_ip": local_ip,
+        }
+    return result
+
+
+def detect_pc_network(interface=None):
+    """Detect the active interface, gateway and subnet for the local machine.
+    If interface is given, return info for that interface only.
+    """
+    if os.name == "nt":
+        import windows
+        interfaces = windows.receive_interface()
+    else:
+        interfaces = networking.recieve_interface() if os.name == "posix" else []
+
+    up_ifaces = [i for i in interfaces if i]
+    all_info = iface_netinfo_all()
+
+    if not all_info:
+        return {"interface": up_ifaces[0] if up_ifaces else "", "router_ip": "", "subnet": "", "local_ip": ""}
+
+    # If a specific interface was requested, return its live info (case-insensitive)
+    if interface:
+        for name, info in all_info.items():
+            if name.strip().lower() == interface.strip().lower():
+                return {
+                    "interface": name,
+                    "router_ip": info.get("router_ip", ""),
+                    "subnet": info.get("subnet", ""),
+                    "local_ip": info.get("local_ip", ""),
+                }
+        # Requested interface not found in parse: fall back to first parsed
+        name, info = next(iter(all_info.items()))
+        return {
+            "interface": name,
+            "router_ip": info.get("router_ip", ""),
+            "subnet": info.get("subnet", ""),
+            "local_ip": info.get("local_ip", ""),
+        }
+
+    # No interface given: prefer the interface that owns a default gateway
+    for name, info in all_info.items():
+        if info.get("router_ip"):
+            return {
+                "interface": name,
+                "router_ip": info["router_ip"],
+                "subnet": info.get("subnet", ""),
+                "local_ip": info.get("local_ip", ""),
+            }
+    name, info = next(iter(all_info.items()))
+    return {
+        "interface": name,
+        "router_ip": info.get("router_ip", ""),
+        "subnet": info.get("subnet", ""),
+        "local_ip": info.get("local_ip", ""),
+    }
 
 
 # -----------------------
@@ -272,28 +396,140 @@ def get_local_hosts():
 def get_interface():
     interfaces = networking.recieve_interface()
     return jsonify(interfaces)
+# -----------------------
+# get current saved settings (for restoring the settings page)
+# -----------------------
+@app.route("/get_settings", methods=["POST"])
+def get_settings():
+    cfg = {k: v for k, v in setting.read().items()}
+    return jsonify(cfg)
+
+
+# -----------------------
+# give the settings page its saved/current interface list + auto-detected PC info
+# -----------------------
+@app.route("/get_pc_netinfo", methods=["POST"])
+def get_pc_netinfo():
+    try:
+        r = request.get_json() or {}
+        interface = r.get("interface", "")
+        return jsonify(detect_pc_network(interface or None))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# -----------------------
+# Mobile Pulling: auto-detect the phone hotspot network info
+# -----------------------
+def get_hotspot_creds():
+    return (
+        str(settings.get("hotspot_name", "") or "WirelessHotspot"),
+        str(settings.get("hotspot_password", "") or "Password123"),
+        str(settings.get("hotspot_band", "") or "5"),
+    )
+
+
+@app.route("/get_mobile_netinfo", methods=["POST"])
+def get_mobile_netinfo():
+    try:
+        import Android_networking
+        name, password, band = get_hotspot_creds()
+        return jsonify(Android_networking.start_hotspot(name, password, band))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# -----------------------
+# Mobile Pulling: discover consoles connected to the hotspot
+# -----------------------
+@app.route("/get_mobile_hosts", methods=["POST"])
+def get_mobile_hosts():
+    r = request.get_json() or {}
+    subnet = r.get("subnet", "")
+    if not subnet:
+        try:
+            import Android_networking
+            name, password, band = get_hotspot_creds()
+            hot = Android_networking.start_hotspot(name, password, band)
+            subnet = hot["subnet"]
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    try:
+        import Android_networking
+        return jsonify(Android_networking.discover_hosts(str(subnet).strip()))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # For the settings page
 @app.route("/save_settings", methods=["POST"])
 def save_settings():
     global needed_info, settings
     data = request.get_json()
-    interface = str(data["interface"])
-    router_ip = str(data["router"])
-    PullType = str(data["PullType"])
-    console = str(data["console"])
-    port = str(data["port"])
-    mobile = str(data["mobile"])
+    PullingMode = str(data["PullingMode"])
+    interface = str(data.get("interface", ""))
+    router_ip = str(data.get("router", ""))
+    console = str(data.get("console", ""))
+    port = str(data.get("port", ""))
+    subnet = str(data.get("subnet", ""))
+    hotspot_name = str(data.get("hotspot_name", "") or "WirelessHotspot")
+    hotspot_password = str(data.get("hotspot_password", "") or "Password123")
+    hotspot_band = str(data.get("hotspot_band", "") or "5")
 
+    # -------------------------
+    # Background auto-fill for Mobile / Local
+    # -------------------------
+    if PullingMode == "Mobile_Pulling":
+        # Hotspot provides gateway/subnet/interface automatically.
+        # If the frontend already auto-detected and passed them, keep them.
+        try:
+            import Android_networking
+            hot = Android_networking.start_hotspot(hotspot_name, hotspot_password, hotspot_band)
+            interface = hot["interface"]
+            router_ip = hot["gateway"]
+            subnet = hot["subnet"]
+        except Exception as e:
+            print("Mobile hotspot detection failed:", e)
+            if not subnet:
+                parts = router_ip.split(".")
+                if len(parts) == 4:
+                    subnet = ".".join(parts[:3]) + ".0/24"
+    elif PullingMode == "Local_Pulling":
+        # PC provides interface/gateway/subnet automatically; honor user iface pick
+        try:
+            pc = detect_pc_network()
+            if not interface or interface in ("", "None"):
+                interface = pc.get("interface", "")
+            if not router_ip or router_ip in ("", "None"):
+                router_ip = pc.get("router_ip", "")
+            if not subnet:
+                subnet = pc.get("subnet", "")
+            if not console or console in ("", "None"):
+                console = pc.get("local_ip", "")
+        except Exception as e:
+            print("Local network detection failed:", e)
+    else:
+        # External Pulling: derive subnet from router_ip
+        if not subnet:
+            parts = router_ip.split(".")
+            if len(parts) == 4:
+                subnet = ".".join(parts[:3]) + ".0/24"
 
-      ## should come in a string 192.168.1.1
-    parts = router_ip.split(".")
-    subnet = ".".join(parts[:3]) + ".0/24"
+    setting.update(interface, router_ip, subnet, console, port, PullingMode,
+                   hotspot_name, hotspot_password, hotspot_band)
 
-    setting.update(interface, router_ip, subnet, console, port, PullType, mobile)
-
-
-    settings.update({"interface": interface, "router_ip": router_ip, "subnet": subnet, "console": console, "port": port, "mobile": mobile})
-    return ""
+    settings.update({
+        "PullingMode": PullingMode,
+        "interface": interface,
+        "router_ip": router_ip,
+        "subnet": subnet,
+        "console": console,
+        "console_port": port,
+        "hotspot_name": hotspot_name,
+        "hotspot_password": hotspot_password,
+        "hotspot_band": hotspot_band,
+    })
+    return jsonify({"ok": True, "settings": settings})
 #starts the sniffing loop with the selected game
 @app.route("/sniff/start", methods=["POST"])
 def sniff_start():
@@ -301,77 +537,85 @@ def sniff_start():
 
     if sniff_running:
         return "running", 204
+    Router_IP = str(settings.get("router_ip", ""))
+    mode = settings.get("PullingMode", "External_Pulling")
 
-    Router_IP = str(settings["router_ip"])
-    Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Router_IP, local = setting.Recieve_INFO(Router_IP, settings["console"])
+    data = request.get_json()
+    game_choice = data.get("game_choice", "3.1")
+    interface = settings.get("interface", "")
+    console_port = settings.get("console_port", "")
+    Target_IP = settings.get("console", "")
 
-    if settings["pullingMethod"] == "Local_Pulling":
+    stop_event.clear()
 
-        data = request.get_json()
-
-        stop_event.clear()
-
-        game_choice = data.get("game_choice", "3.1")
-
-        interface = settings['interface']
-
+    # ---------------------------------------------------------------
+    # Local Pulling: sniff the PC interface directly, no ARP spoofing
+    # ---------------------------------------------------------------
+    if mode == "Local_Pulling":
         needed_info.update({"interface": interface, "is_local": True})
-
-        setup_sniffer(Target_IP, local, settings["console_port"])
+        setup_sniffer(Target_IP, [], console_port)
 
         conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=False)
         conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=False)
 
         sniff_thread = threading.Thread(target=sniffing, args=(game_choice, interface), daemon=False)
 
-
         sniff_thread.start()
         sniff_running = True
-
         conn_thread.start()
         conn_thread2.start()
 
         return "Started", 204
 
-    else:
-        stop_event.clear()
+    # ---------------------------------------------------------------
+    # Mobile Pulling: sniff the phone hotspot interface, no ARP spoofing
+    # (same capture model as Local but on the phone's hotspot iface)
+    # ---------------------------------------------------------------
+    if mode == "Mobile_Pulling":
+        needed_info.update({"interface": interface, "is_local": True})
+        setup_sniffer(Target_IP, [], console_port)
 
+        conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=False)
+        conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=False)
 
-        needed_info.update({"Target_IP": Target_IP, "Target_MAC": Target_MAC, "Spoof_IP": Spoof_IP, "Spoof_MAC": Spoof_MAC, "Routers_IP": Router_IP, "local": local, "interface": settings["interface"], "is_local": False})
-
-        data = request.get_json()
-        game_choice = data.get("game_choice", "3.1")
-        interface = settings["interface"]
-
-
-        setup_sniffer(Target_IP, local, settings["console_port"])
-        sniff_running = True
         sniff_thread = threading.Thread(target=sniffing, args=(game_choice, interface), daemon=False)
+
         sniff_thread.start()
-
-        if str(game_choice).startswith("2"):
-            conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0, True), daemon=False)
-            conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4, True), daemon=False)
-        else:
-            conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=False)
-            conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=False)
-
-        networking.Allow_ipv4_fowarding(1, interface)
-
-        arp_thread = threading.Thread(target=networking.Packet_Sender, args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Spoof_MAC, stop_event), daemon=False)
-        arp_thread.start()
-
-        if settings["mobile"] == "yes":
-            import mobile as mobile_script
-            mobile_foward_thread = threading.Thread(target=mobile_script.ipv4_foward, args=(settings["interface"], Target_MAC, Spoof_MAC), daemon=False)
-            mobile_foward_thread.start()
-
-
+        sniff_running = True
         conn_thread.start()
         conn_thread2.start()
 
-        print("started sniffing")
         return "Started", 204
+
+    # ---------------------------------------------------------------
+    # External Pulling: ARP spoof from this PC toward the console
+    # ---------------------------------------------------------------
+    Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Router_IP, local = setting.Recieve_INFO(Router_IP, Target_IP)
+
+    needed_info.update({"Target_IP": Target_IP, "Target_MAC": Target_MAC, "Spoof_IP": Spoof_IP, "Spoof_MAC": Spoof_MAC, "Routers_IP": Router_IP, "local": local, "interface": interface, "is_local": False})
+
+    setup_sniffer(Target_IP, local, console_port)
+    sniff_running = True
+    sniff_thread = threading.Thread(target=sniffing, args=(game_choice, interface), daemon=False)
+    sniff_thread.start()
+
+    if str(game_choice).startswith("2"):
+        conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0, True), daemon=False)
+        conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4, True), daemon=False)
+    else:
+        conn_thread = threading.Thread(target=conncurent, args=(stop_event, 0), daemon=False)
+        conn_thread2 = threading.Thread(target=conncurent, args=(stop_event, 4), daemon=False)
+
+    networking.Allow_ipv4_fowarding(1, interface)
+
+    arp_thread = threading.Thread(target=networking.Packet_Sender, args=(Target_IP, Target_MAC, Spoof_IP, Spoof_MAC, Spoof_MAC, stop_event), daemon=False)
+    arp_thread.start()
+
+    conn_thread.start()
+    conn_thread2.start()
+
+    print("started sniffing")
+    return "Started", 204
 # resets all lists except left session and stops the sniffing loop
 @app.route("/sniff/stop", methods=["POST"])
 def sniff_stop():
@@ -382,10 +626,16 @@ def sniff_stop():
 
 
     if not needed_info.get("is_local", False):
-        networking.Packet_Sender(needed_info["Target_IP"], needed_info["Target_MAC"], needed_info["Spoof_IP"], needed_info["Spoof_MAC"], needed_info["Routers_IP"], None, reset_arp=True)
+        try:
+            networking.Packet_Sender(needed_info["Target_IP"], needed_info["Target_MAC"], needed_info["Spoof_IP"], needed_info["Spoof_MAC"], needed_info["Routers_IP"], None, reset_arp=True)
+        except KeyError:
+            pass
         time.sleep(4)
 
-        networking.Allow_ipv4_fowarding(0, needed_info["interface"])
+        try:
+            networking.Allow_ipv4_fowarding(0, needed_info["interface"])
+        except KeyError:
+            pass
 
     captured_ips.clear()
     connected.clear()
@@ -716,7 +966,6 @@ def setup_sniffer(Target_IP, localhosts, console_port):
 def sniffing(game_choice, interface):
     global sniff_running, filters
     sniff_running = True
-
     if not sniff_running:
         return
 
@@ -736,8 +985,8 @@ def startwebsite():
 
     with open("puller.settings", "r") as f:
         for line in f.readlines():
-            settings_name, setting = line.split(" ")
-            settings[settings_name.strip()] = setting.strip()
+            setting_name, setting_val = line.strip().split(" ", 1)
+            settings[setting_name.strip()] = setting_val.strip()
 
     start_site()
     print("\n[INFO] KeyboardInterrupt received — shutting down...")

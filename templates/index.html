@@ -25,6 +25,9 @@ h2 { font-size: 1.25rem; margin-bottom: 20px; color: #f1f5f9; }
 .input-btn { outline: none; }
 .select-btn option { background: black; color: white; }
 button { margin-top: 20px; padding: 10px 14px; font-weight: 600; border-radius: 6px; background: #1e40af; color: white; border: none; cursor: pointer; }
+button.small { margin-top: 8px; padding: 6px 10px; font-size: 0.85rem; }
+.hidden { display: none !important; }
+.info-box { color: #94a3b8; font-size: 0.85rem; }
 </style>
 </head>
 <body>
@@ -43,44 +46,70 @@ button { margin-top: 20px; padding: 10px 14px; font-weight: 600; border-radius: 
 <div class="notification" id="notif">Scanning for local hosts...</div>
 
 <main>
-<h2>Network & Console Settings</h2>
+<h2>Network &amp; Console Settings</h2>
 
 <div class="field-btns">
 
+  <!-- Master pulling mode -->
   <div class="field-block">
+    <div class="field-label">Pulling Mode</div>
+    <select class="select-btn" id="pulling_mode">
+      <option value="Mobile_Pulling">Mobile Pulling</option>
+      <option value="Local_Pulling">Local Pulling</option>
+      <option value="External_Pulling">External Pulling</option>
+    </select>
+  </div>
+
+  <div class="info-box" id="mode_hint"></div>
+
+  <!-- Group: shared / external fields -->
+  <div class="field-block" data-mode="External_Pulling" id="group_interface">
     <div class="field-label">Interface</div>
     <select class="select-btn" id="interface"></select>
   </div>
 
-  <div class="field-block">
+  <div class="field-block" data-mode="Local_Pulling" id="group_interface_local">
+    <div class="field-label">Interface</div>
+    <select class="select-btn" id="interface_local"></select>
+  </div>
+
+  <div class="field-block" data-mode="External_Pulling" id="group_router">
     <div class="field-label">Router IP</div>
     <input class="input-btn" id="router_ip" placeholder="192.168.1.1">
   </div>
 
-  <div class="field-block">
+  <!-- Console selection: used by External (ARP scan) and Mobile (hotspot scan) -->
+  <div class="field-block" data-mode="External_Pulling" id="group_console_ext">
     <div class="field-label">Console</div>
     <select class="select-btn" id="console" disabled></select>
   </div>
 
-  <div class="field-block">
+  <div class="field-block" data-mode="Mobile_Pulling" id="group_hotspot_name">
+    <div class="field-label">Hotspot Name</div>
+    <input class="input-btn" id="hotspot_name" placeholder="WirelessHotspot">
+  </div>
+
+  <div class="field-block" data-mode="Mobile_Pulling" id="group_hotspot_password">
+    <div class="field-label">Hotspot Password</div>
+    <input class="input-btn" id="hotspot_password" placeholder="Password123">
+  </div>
+
+  <div class="field-block" data-mode="Mobile_Pulling" id="group_hotspot_band">
+    <div class="field-label">Hotspot Band</div>
+    <select class="select-btn" id="hotspot_band">
+      <option value="2">2 GHz</option>
+      <option value="5">5 GHz</option>
+    </select>
+  </div>
+
+  <div class="field-block" data-mode="Mobile_Pulling" id="group_console_mobile">
+    <div class="field-label">Console</div>
+    <select class="select-btn" id="console_mobile" disabled></select>
+  </div>
+
+  <div class="field-block" id="group_port">
     <div class="field-label">Console Port</div>
     <input class="input-btn" id="console_port" placeholder="50322">
-  </div>
-
-  <div class="field-block">
-    <div class="field-label">Using a phone?</div>
-    <select class="select-btn" id="mobile">
-      <option>no</option>
-      <option>yes</option>
-    </select>
-  </div>
-
-  <div class="field-block">
-    <div class="field-label">Local Pulling Or External Device</div>
-    <select class="select-btn" id="pulling_type">
-      <option>Local Pulling</option>
-      <option>External Pulling</option>
-    </select>
   </div>
 
 </div>
@@ -105,92 +134,247 @@ document.addEventListener('click', (e) => {
 
 // IPv4 validation
 function validIP(ip) {
-  return /^((10|172|192)\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.test(ip);
+  return /^(\d{1,3}\.){3}\d{1,3}$/.test(ip);
 }
 
-// Populate interface list
-fetch('/get_interface', { method: 'POST' })
-  .then(r => r.json())
-  .then(list => {
-    const el = document.getElementById('interface');
-    el.innerHTML = '';
-    list.forEach(item => {
-      const opt = document.createElement('option');
-      opt.textContent = item;
-      el.appendChild(opt);
-    });
+// Populate a select with options
+function fillSelect(el, items) {
+  el.innerHTML = '';
+  items.forEach(item => {
+    const opt = document.createElement('option');
+    opt.textContent = item;
+    el.appendChild(opt);
   });
+}
 
-// Load console hosts after valid router IP
-document.getElementById('router_ip').addEventListener('blur', e => {
-  const router = e.target.value.trim();
+// -----------------------------
+// Mode switching (show/hide fields)
+// -----------------------------
+const MODE_HINTS = {
+  Mobile_Pulling: 'Sniffs the phone hotspot. Set your hotspot name, password & band; console IP & port selected below.',
+  Local_Pulling: 'Sniffs the PC directly. Choose your interface; router/subnet auto-detected.',
+  External_Pulling: 'ARP spoof from this PC. All fields shown.'
+};
+
+function setMode(mode) {
+  // Show/hide each field block by data-mode
+  document.querySelectorAll('[data-mode]').forEach(block => {
+    block.classList.toggle('hidden', block.dataset.mode !== mode);
+  });
+  const hint = document.getElementById('mode_hint');
+  hint.textContent = MODE_HINTS[mode] || '';
+  window._currentMode = mode;
+}
+
+// -----------------------------
+// Load saved settings + restore
+// -----------------------------
+function loadSaved() {
+  return fetch('/get_settings', { method: 'POST' })
+    .then(r => r.json())
+    .then(cfg => {
+      const mode = cfg.PullingMode || 'Local_Pulling';
+      document.getElementById('pulling_mode').value = mode;
+      setMode(mode);
+
+      document.getElementById('console_port').value = cfg.console_port || '';
+      const consoleVal = cfg.console || '';
+      document.getElementById('hotspot_name').value = cfg.hotspot_name || '';
+      document.getElementById('hotspot_password').value = cfg.hotspot_password || '';
+      document.getElementById('hotspot_band').value = cfg.hotspot_band || '5';
+      // Populate interface dropdowns from saved value + actual list
+      const iface = cfg.interface || '';
+      const ifaceEl = document.getElementById('interface');
+      const ifaceLocalEl = document.getElementById('interface_local');
+
+      return fetch('/get_interface', { method: 'POST' })
+        .then(r => r.json())
+        .then(list => {
+          [ifaceEl, ifaceLocalEl].forEach(el => {
+            fillSelect(el, list);
+            if (iface && list.includes(iface)) el.value = iface;
+            else if (list.length) el.value = list[0];
+          });
+          // Seed console selects with saved value if present
+          const cExt = document.getElementById('console');
+          const cMob = document.getElementById('console_mobile');
+          fillSelect(cExt, [consoleVal]);
+          fillSelect(cMob, [consoleVal]);
+          if (consoleVal) {
+            cExt.value = consoleVal; cMob.value = consoleVal;
+            cExt.disabled = false; cMob.disabled = false;
+          }
+          // Seed the gateway with the saved value, then live-detection may override it
+          document.getElementById('router_ip').value = cfg.router_ip || '';
+          const selectedIface = ifaceEl.value;
+          if (selectedIface) {
+            refreshIfaceNetinfo(selectedIface, /*keepManual=*/true);
+          }
+        });
+    });
+}
+
+// fill router_ip (+ hidden subnet) from live detection for the given interface
+function refreshIfaceNetinfo(iface, keepManual) {
+  const routerEl = document.getElementById('router_ip');
+  const manual = routerEl.value.trim();
+  return fetch('/get_pc_netinfo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ interface: iface })
+  })
+  .then(r => r.json())
+  .then(net => {
+    if (net.error) { console.error('netinfo failed', net.error); return; }
+    if (!net.router_ip) return;
+    // Only overwrite if empty or the existing value belongs to another subnet
+    if (!keepManual || !(routerEl.value && /^(\d{1,3}\.){3}\d{1,3}$/.test(routerEl.value))) {
+      routerEl.value = net.router_ip;
+    } else if (net.subnet && routerEl.value && !routerEl.value.startsWith(net.subnet.split('.').slice(0,3).join('.'))) {
+      routerEl.value = net.router_ip;
+    }
+    routerEl.dataset.live_subnet = net.subnet || '';
+  })
+  .catch(err => console.error('netinfo error', err));
+}
+
+// -----------------------------
+// Console host discovery
+// -----------------------------
+function loadExternalConsoles() {
+  const router = document.getElementById('router_ip').value.trim();
   const consoleSel = document.getElementById('console');
   const notif = document.getElementById('notif');
 
   if (!validIP(router)) {
-    consoleSel.innerHTML = '';
+    fillSelect(consoleSel, []);
     consoleSel.disabled = true;
-    notif.style.display = 'none';
-    return;
+    return Promise.resolve();
   }
-
   notif.style.display = 'block';
-  consoleSel.disabled = true;
-  consoleSel.innerHTML = '';
-
-  fetch('/get_local_hosts', {
+  return fetch('/get_local_hosts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ router })
   })
   .then(r => r.json())
   .then(dict => {
-    const ips = Object.keys(dict).sort((a, b) => {
-      return a.split('.').reduce((acc, oct, i) => acc + parseInt(oct)*(256**(3-i)),0) -
-             b.split('.').reduce((acc, oct, i) => acc + parseInt(oct)*(256**(3-i)),0);
-    });
-
-    consoleSel.innerHTML = '';
-    ips.forEach(ip => {
-      const opt = document.createElement('option');
-      opt.textContent = ip;
-      consoleSel.appendChild(opt);
-    });
-    consoleSel.disabled = false;
-    notif.style.display = 'none';
+    const ips = Object.keys(dict).sort();
+    fillSelect(consoleSel, ips);
+    consoleSel.disabled = !ips.length;
   })
-  .catch(err => {
-    console.error('Error fetching console hosts:', err);
-    consoleSel.innerHTML = '';
-    consoleSel.disabled = true;
-    notif.style.display = 'none';
-  });
-});
+  .catch(() => { fillSelect(consoleSel, []); consoleSel.disabled = true; })
+  .finally(() => { notif.style.display = 'none'; });
+}
 
+function loadMobileConsoles() {
+  const consoleSel = document.getElementById('console_mobile');
+  fillSelect(consoleSel, []);
+  consoleSel.disabled = true;
+  // First auto-detect hotspot network info, then scan it for consoles
+  return fetch('/get_mobile_netinfo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      hotspot_name: document.getElementById('hotspot_name').value,
+      hotspot_password: document.getElementById('hotspot_password').value,
+      hotspot_band: document.getElementById('hotspot_band').value
+    })
+  })
+  .then(r => r.json())
+  .then(net => {
+    if (net.error) { console.error('mobile netinfo failed', net.error); return; }
+    return fetch('/get_mobile_hosts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subnet: net.subnet || '' })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) { console.error('mobile host scan failed', data.error); return; }
+      const ips = Object.keys(data).sort();
+      fillSelect(consoleSel, ips);
+      consoleSel.disabled = !ips.length;
+    });
+  })
+  .catch(err => console.error('mobile console load error', err));
+}
+
+// -----------------------------
 // Save settings
+// -----------------------------
 document.getElementById('save_btn').addEventListener('click', () => {
-  const interfaceVal = document.getElementById('interface').value;
+  const mode = document.getElementById('pulling_mode').value;
+  const interfaceVal = (mode === 'Local_Pulling')
+    ? document.getElementById('interface_local').value
+    : document.getElementById('interface').value;
   const routerVal = document.getElementById('router_ip').value;
-  const consoleVal = document.getElementById('console').value;
   const portVal = document.getElementById('console_port').value;
-  const pullVal = document.getElementById('pulling_type').value;
-  const mobileVal = document.getElementById('mobile').value;
+
+  let consoleVal = '';
+  if (mode === 'Mobile_Pulling') consoleVal = document.getElementById('console_mobile').value;
+  else if (mode === 'External_Pulling') consoleVal = document.getElementById('console').value;
 
   fetch('/save_settings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      PullingMode: mode,
       interface: interfaceVal,
       router: routerVal,
       console: consoleVal,
       port: portVal,
-      PullType: pullVal,
-      mobile: mobileVal
+      subnet: '',
+      hotspot_name: document.getElementById('hotspot_name').value,
+      hotspot_password: document.getElementById('hotspot_password').value,
+      hotspot_band: document.getElementById('hotspot_band').value
     })
   })
-  .then(r => { if(r.ok) alert('Settings saved successfully.'); else alert('Error saving settings.'); })
+  .then(r => r.json())
+  .then(res => {
+    if (res.ok) alert('Settings saved successfully.');
+    else alert('Error saving settings.');
+  })
   .catch(err => { console.error(err); alert('Error saving settings.'); });
 });
+
+// -----------------------------
+// Event wiring
+// -----------------------------
+document.getElementById('pulling_mode').addEventListener('change', e => {
+  const mode = e.target.value;
+  setMode(mode);
+  if (mode === 'External_Pulling' || mode === 'Local_Pulling') {
+    const ifaceEl = (mode === 'Local_Pulling') ? document.getElementById('interface_local') : document.getElementById('interface');
+    if (ifaceEl && ifaceEl.value) refreshIfaceNetinfo(ifaceEl.value, true);
+  }
+  if (mode === 'External_Pulling') loadExternalConsoles();
+  if (mode === 'Mobile_Pulling') loadMobileConsoles();
+});
+
+['interface', 'interface_local'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', () => refreshIfaceNetinfo(el.value, true));
+});
+
+document.getElementById('router_ip').addEventListener('blur', () => {
+  if (window._currentMode === 'External_Pulling') loadExternalConsoles();
+});
+
+// Re-scan the mobile hotspot when its credentials change
+['hotspot_name', 'hotspot_password', 'hotspot_band'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    if (window._currentMode === 'Mobile_Pulling') loadMobileConsoles();
+  });
+});
+
+// Init
+loadSaved()
+  .then(() => {
+    if (window._currentMode === 'External_Pulling') loadExternalConsoles();
+    if (window._currentMode === 'Mobile_Pulling') loadMobileConsoles();
+  })
+  .catch(err => console.error('Failed to load settings', err));
 </script>
 
 </body>

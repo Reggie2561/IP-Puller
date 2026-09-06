@@ -1,7 +1,10 @@
+PullingMode Local_Pulling
 interface Wi-Fi
 router_ip 10.168.168.1
 subnet 10.168.168.0/24
 console 10.168.168.37
 console_port 50322
-pullingMethod Local_Pulling
-mobile no
+hotspot_name WirelessHotspot
+hotspot_password Password123
+hotspot_band 2
+access_key None_Value
